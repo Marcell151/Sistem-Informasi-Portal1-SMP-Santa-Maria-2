@@ -6,8 +6,8 @@ session_start();
 // Cek apakah user sudah login
 if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     // Redirect ke dashboard sesuai role
-    if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'SuperAdmin') {
-        header('Location: views/dashboard.php');
+    if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'SuperAdmin' || $_SESSION['role'] === 'KepalaSekolah') {
+        header('Location: views/admin/dashboard.php');
     } else {
         header('Location: views/guru/input_pelanggaran.php');
     }

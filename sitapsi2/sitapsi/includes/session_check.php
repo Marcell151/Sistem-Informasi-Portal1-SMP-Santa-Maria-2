@@ -41,7 +41,7 @@ function checkRole($allowed_roles = []) {
 
 
 function requireAdmin() {
-    checkRole(['Admin', 'SuperAdmin']);
+    checkRole(['Admin', 'SuperAdmin', 'KepalaSekolah']);
 }
 
 
@@ -61,6 +61,10 @@ function getCurrentUser() {
     ];
 }
 
+
+function isKepsek() {
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'KepalaSekolah';
+}
 
 function isAdmin() {
     return isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'SuperAdmin']);

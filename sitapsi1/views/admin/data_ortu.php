@@ -10,6 +10,7 @@ require_once '../../config/database.php';
 require_once '../../includes/session_check.php';
 
 requireAdmin();
+if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk mengubah Master Data Orang Tua.");
 
 $search = $_GET['search'] ?? '';
 

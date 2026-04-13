@@ -41,7 +41,7 @@ function requireSuperAdmin() {
  * DISESUAIKAN: Admin Utama & Admin Tatib boleh akses modul Tatib
  */
 function requireAdmin() {
-    checkRole(['Admin', 'SuperAdmin']);
+    checkRole(['Admin', 'SuperAdmin', 'KepalaSekolah']);
 }
 
 function requireGuru() {
@@ -68,6 +68,10 @@ function isAdmin() {
 
 function isGuru() {
     return isset($_SESSION['role']) && $_SESSION['role'] === 'Guru';
+}
+
+function isKepsek() {
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'KepalaSekolah';
 }
 
 checkLogin();

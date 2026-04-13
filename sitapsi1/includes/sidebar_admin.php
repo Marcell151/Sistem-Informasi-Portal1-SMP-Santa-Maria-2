@@ -65,6 +65,7 @@ function getNavClass($isActive) {
             </div>
         </a>
 
+        <?php if (!isKepsek()): ?>
         <div class="pt-4 pb-1">
             <p class="px-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase">Master Data</p>
         </div>
@@ -89,6 +90,7 @@ function getNavClass($isActive) {
                 Data Guru
             </div>
         </a>
+        <?php endif; ?>
 
         <div class="pt-4 pb-1">
             <p class="px-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase">Tatib & Poin</p>
@@ -141,13 +143,16 @@ function getNavClass($isActive) {
             </div>
         </a>
 
+        <?php if (!isKepsek()): ?>
         <a href="manajemen_aturan.php" class="<?= getNavClass($current_page === 'manajemen_aturan') ?>">
             <div class="flex items-center gap-3">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 Manajemen Aturan
             </div>
         </a>
+        <?php endif; ?>
 
+        <?php if (!isKepsek()): ?>
         <div class="pt-4 pb-1">
             <p class="px-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase">Sistem Akademik</p>
         </div>
@@ -158,6 +163,7 @@ function getNavClass($isActive) {
                 Pengaturan Akademik
             </div>
         </a>
+        <?php endif; ?>
 
         <div class="pt-4 pb-1">
             <p class="px-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase">Pusat Data Lampau</p>
@@ -179,7 +185,7 @@ function getNavClass($isActive) {
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold text-slate-800 truncate"><?= htmlspecialchars($user_name) ?></p>
-                <p class="text-[10px] font-medium text-slate-500 uppercase">Administrator</p>
+                <p class="text-[10px] font-medium text-slate-500 uppercase"><?= isKepsek() ? 'Kepala Sekolah' : 'Administrator' ?></p>
             </div>
         </div>
         <a href="../../actions/logout.php" onclick="return confirm('Keluar dari aplikasi?')" class="flex w-full items-center justify-start text-sm font-medium px-4 py-2.5 rounded-md text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors">

@@ -9,6 +9,7 @@ require_once '../../config/database.php';
 require_once '../includes/session_check.php';
 
 requireAdmin();
+if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk manajemen kelas.");
 
 // Ambil daftar kelas
 $kelas_list = fetchAll("SELECT * FROM tb_kelas ORDER BY tingkat, nama_kelas");

@@ -111,7 +111,7 @@ function getNavClass($isActive) {
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-bold text-slate-800 truncate"><?= htmlspecialchars($user_name) ?></p>
                 <p class="text-[10px] font-medium text-slate-500 uppercase">
-                    <?= ($user_role === 'AdminTatib') ? 'Tim Kedisiplinan' : 'Core Admin' ?>
+                    <?= isKepsek() ? 'Kepala Sekolah' : (($user_role === 'AdminTatib') ? 'Tim Kedisiplinan' : 'Core Admin') ?>
                 </p>
             </div>
         </div>

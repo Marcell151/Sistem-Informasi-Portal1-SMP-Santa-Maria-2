@@ -9,6 +9,7 @@ require_once '../../config/database.php';
 require_once '../includes/session_check.php';
 
 requireAdmin();
+if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk melakukan Kenaikan Kelas.");
 
 $id_kelas_asal = $_GET['kelas_asal'] ?? null;
 

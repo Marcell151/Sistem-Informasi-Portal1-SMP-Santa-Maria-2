@@ -7,6 +7,10 @@ require_once '../../includes/session_check.php';
 
 requireAdmin();
 
+if (isKepsek()) {
+    die("Akses Ditolak: Kepala Sekolah tidak diizinkan mengubah data pelanggaran.");
+}
+
 $id_transaksi = $_GET['id'] ?? null;
 
 if (!$id_transaksi) {

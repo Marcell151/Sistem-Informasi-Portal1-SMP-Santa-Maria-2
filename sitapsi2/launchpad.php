@@ -16,9 +16,9 @@ $nama_user = $_SESSION['nama_lengkap'];
 $role = $_SESSION['role'];
 
 // --- LOGIKA PENENTUAN FOLDER & FILE TUJUAN ---
-// Karena SuperAdmin dan Admin sama-sama menggunakan folder 'admin' di modul SITAPSI
-$folder_tujuan = (in_array($role, ['SuperAdmin', 'Admin'])) ? 'admin' : strtolower($role);
-$file_tujuan   = (in_array($role, ['SuperAdmin', 'Admin'])) ? 'dashboard' : 'input_pelanggaran';
+// SuperAdmin, Admin, dan KepalaSekolah menggunakan folder 'admin' di modul SITAPSI
+$folder_tujuan = (in_array($role, ['SuperAdmin', 'Admin', 'KepalaSekolah'])) ? 'admin' : strtolower($role);
+$file_tujuan   = (in_array($role, ['SuperAdmin', 'Admin', 'KepalaSekolah'])) ? 'dashboard' : 'input_pelanggaran';
 // ---------------------------------------------
 
 $cek_ta = fetchOne("SELECT id_tahun FROM tb_tahun_ajaran WHERE status = 'Aktif'");
@@ -75,7 +75,7 @@ if (!$cek_ta) {
                     <img src="sitapsi/assets/img/logo.png" alt="Logo Santa Maria" class="w-full h-full object-contain">
                 </div>
                 <span class="font-extrabold text-slate-800 tracking-tight">Portal Terpadu</span>
-                <span class="ml-2 px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase hidden sm:inline">Hak Akses: <?= ($role === 'Admin') ? 'Tim Tatib' : $role ?></span>
+                <span class="ml-2 px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase hidden sm:inline">Hak Akses: <?= ($role === 'Admin') ? 'Tim Tatib' : ($role === 'KepalaSekolah' ? 'Kepala Sekolah' : $role) ?></span>
             </div>
             <a href="logout.php" onclick="return confirm('Keluar dari portal terpadu?')" class="flex items-center text-sm font-bold text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -121,8 +121,8 @@ if (!$cek_ta) {
                 </a>
                 <?php endif; ?>
 
-                <?php if ($role === 'SuperAdmin' || $role === 'Admin'): ?>
-                <a href="core_admin/views/arsip_tahun.php" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md transition-all text-center group <?= ($role === 'Admin') ? 'col-span-2 md:col-span-5' : '' ?>">
+                <?php if ($role === 'SuperAdmin' || $role === 'Admin' || $role === 'KepalaSekolah'): ?>
+                <a href="core_admin/views/arsip_tahun.php" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md transition-all text-center group <?= ($role === 'Admin' || $role === 'KepalaSekolah') ? 'col-span-2 md:col-span-5' : '' ?>">
                     <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-slate-700 group-hover:text-white transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>
                     </div>

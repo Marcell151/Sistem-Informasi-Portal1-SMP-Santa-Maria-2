@@ -6,6 +6,9 @@ require_once '../../config/database.php';
 require_once '../../includes/session_check.php';
 
 requireAdmin();
+if (isKepsek()) {
+    die("Akses Ditolak: Kepala Sekolah tidak memiliki izin untuk mengelola pengaturan sistem.");
+}
 
 $active_tab = $_GET['tab'] ?? 'pelanggaran';
 $filter_kategori = $_GET['kategori'] ?? 'all';

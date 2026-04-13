@@ -9,6 +9,7 @@ require_once '../../config/database.php';
 require_once '../includes/session_check.php';
 
 requireAdmin();
+if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk mengubah Master Data Guru.");
 
 // Ambil daftar kelas untuk dropdown
 $kelas_list = fetchAll("SELECT id_kelas, nama_kelas FROM tb_kelas ORDER BY tingkat, nama_kelas");
