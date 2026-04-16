@@ -52,7 +52,7 @@ function getNavClass($isActive) {
 
     <nav class="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-hide">
         
-        <?php if ($user_role === 'SuperAdmin'): ?>
+        <?php if ($user_role === 'AdminPusat'): ?>
             <div class="pt-2 pb-1">
                 <p class="px-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase">Manajemen Pengguna</p>
             </div>

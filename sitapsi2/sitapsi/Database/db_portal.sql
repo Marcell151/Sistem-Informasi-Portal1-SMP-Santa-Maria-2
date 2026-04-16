@@ -12,7 +12,7 @@ CREATE TABLE tb_admin (
     username VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL, 
     nama_lengkap VARCHAR(100) NOT NULL,
-    role ENUM('SuperAdmin', 'Admin') DEFAULT 'SuperAdmin',
+    role ENUM('AdminPusat', 'Admin') DEFAULT 'AdminPusat',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -362,7 +362,7 @@ INSERT INTO tb_predikat_nilai (id_kategori, huruf_mutu, batas_bawah, batas_atas,
 
 -- 6. INSERT USER TESTING (Contoh Data)
 INSERT INTO tb_admin (username, password, nama_lengkap, role) VALUES 
-('admin', 'admin123', 'Super Admin Tatib', 'SuperAdmin');
+('admin', 'admin123', 'Admin Pusat Tatib', 'AdminPusat');
 
 -- Insert Data Tahun 
 INSERT INTO tb_tahun_ajaran (nama_tahun, status, semester_aktif) VALUES 

@@ -161,7 +161,7 @@ function redirectToLogin($message) {
 
 
 function redirectToDashboard() {
-    if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'SuperAdmin') {
+    if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'AdminPusat') {
         header('Location: ../views/admin/dashboard.php');
     } else {
         header('Location: ../views/guru/input_pelanggaran.php');

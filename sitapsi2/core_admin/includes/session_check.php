@@ -33,15 +33,15 @@ function checkRole($allowed_roles = []) {
 /**
  * DISESUAIKAN: Hanya Role 'Admin' (Master) yang boleh akses
  */
-function requireSuperAdmin() {
-    checkRole(['SuperAdmin']);
+function requireAdminPusat() {
+    checkRole(['AdminPusat']);
 }
 
 /**
  * DISESUAIKAN: Admin Utama & Admin Tatib boleh akses modul Tatib
  */
 function requireAdmin() {
-    checkRole(['Admin', 'SuperAdmin', 'KepalaSekolah']);
+    checkRole(['Admin', 'AdminPusat', 'KepalaSekolah']);
 }
 
 function requireGuru() {

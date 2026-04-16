@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'SuperAdmin'])) {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'AdminPusat'])) {
     header("Location: ../../index.php");
     exit;
 }

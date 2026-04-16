@@ -3,7 +3,7 @@ session_start();
 require_once '../config/database.php'; // Panggil config
 
 // Validasi hanya Admin yang boleh
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'SuperAdmin'])) {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'AdminPusat'])) {
     header("Location: ../index.php");
     exit;
 }

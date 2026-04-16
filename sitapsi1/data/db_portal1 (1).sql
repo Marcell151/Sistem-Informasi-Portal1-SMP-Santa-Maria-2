@@ -32,7 +32,7 @@ CREATE TABLE `tb_admin` (
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `nama_lengkap` varchar(100) NOT NULL,
-  `role` enum('SuperAdmin','Admin') DEFAULT 'Admin',
+  `role` enum('AdminPusat','Admin') DEFAULT 'Admin',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -41,7 +41,7 @@ CREATE TABLE `tb_admin` (
 --
 
 INSERT INTO `tb_admin` (`id_admin`, `username`, `password`, `nama_lengkap`, `role`, `created_at`) VALUES
-(1, 'admin', 'admin123', 'Admin SITAPSI', 'SuperAdmin', '2026-04-12 06:35:14'),
+(1, 'admin', 'admin123', 'Admin SITAPSI', 'AdminPusat', '2026-04-12 06:35:14'),
 (2, 'admintatib', 'admin123', 'Tim Kedisiplinan', 'Admin', '2026-04-12 06:35:14');
 
 -- --------------------------------------------------------

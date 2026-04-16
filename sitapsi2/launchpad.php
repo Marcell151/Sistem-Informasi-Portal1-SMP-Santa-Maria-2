@@ -1,7 +1,7 @@
 <?php
 /**
  * PORTAL TERPADU - App Launchpad (SSO)
- * Penyesuaian: Role SuperAdmin (TU) & Admin (Tatib)
+ * Penyesuaian: Role AdminPusat (TU) & Admin (Tatib)
  */
 session_start();
 
@@ -16,16 +16,16 @@ $nama_user = $_SESSION['nama_lengkap'];
 $role = $_SESSION['role'];
 
 // --- LOGIKA PENENTUAN FOLDER & FILE TUJUAN ---
-// SuperAdmin, Admin, dan KepalaSekolah menggunakan folder 'admin' di modul SITAPSI
-$folder_tujuan = (in_array($role, ['SuperAdmin', 'Admin', 'KepalaSekolah'])) ? 'admin' : strtolower($role);
-$file_tujuan   = (in_array($role, ['SuperAdmin', 'Admin', 'KepalaSekolah'])) ? 'dashboard' : 'input_pelanggaran';
+// AdminPusat, Admin, dan KepalaSekolah menggunakan folder 'admin' di modul SITAPSI
+$folder_tujuan = (in_array($role, ['AdminPusat', 'Admin', 'KepalaSekolah'])) ? 'admin' : strtolower($role);
+$file_tujuan   = (in_array($role, ['AdminPusat', 'Admin', 'KepalaSekolah'])) ? 'dashboard' : 'input_pelanggaran';
 // ---------------------------------------------
 
 $cek_ta = fetchOne("SELECT id_tahun FROM tb_tahun_ajaran WHERE status = 'Aktif'");
 
 if (!$cek_ta) {
-    // Hanya role 'SuperAdmin' (TU) yang boleh melakukan setup awal
-    if ($role === 'SuperAdmin') {
+    // Hanya role 'AdminPusat' (TU) yang boleh melakukan setup awal
+    if ($role === 'AdminPusat') {
         header("Location: core_admin/views/setup_tahun_ajaran.php");
         exit;
     } else {
@@ -46,7 +46,7 @@ if (!$cek_ta) {
                     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Sistem Belum Dikonfigurasi</h2>
-                <p class="text-slate-500 mb-8">Mohon maaf, Portal Terpadu saat ini belum memiliki Tahun Ajaran yang aktif. Silakan hubungi <b>Bagian Tata Usaha (SuperAdmin)</b> untuk melakukan konfigurasi awal.</p>
+                <p class="text-slate-500 mb-8">Mohon maaf, Portal Terpadu saat ini belum memiliki Tahun Ajaran yang aktif. Silakan hubungi <b>Bagian Tata Usaha (AdminPusat)</b> untuk melakukan konfigurasi awal.</p>
                 <a href="logout.php" class="inline-block bg-slate-800 text-white font-bold py-3 px-6 rounded-xl hover:bg-slate-900 transition-colors w-full">Keluar dari Portal</a>
             </div>
         </body>
@@ -94,7 +94,7 @@ if (!$cek_ta) {
             <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4">Core System</h2>
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                 
-                <?php if ($role === 'SuperAdmin'): ?>
+                <?php if ($role === 'AdminPusat'): ?>
                 <a href="core_admin/views/data_siswa.php" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-[#000080] hover:shadow-md transition-all text-center group">
                     <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-[#000080] group-hover:text-white transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -121,7 +121,7 @@ if (!$cek_ta) {
                 </a>
                 <?php endif; ?>
 
-                <?php if ($role === 'SuperAdmin' || $role === 'Admin' || $role === 'KepalaSekolah'): ?>
+                <?php if ($role === 'AdminPusat' || $role === 'Admin' || $role === 'KepalaSekolah'): ?>
                 <a href="core_admin/views/arsip_tahun.php" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md transition-all text-center group <?= ($role === 'Admin' || $role === 'KepalaSekolah') ? 'col-span-2 md:col-span-5' : '' ?>">
                     <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-slate-700 group-hover:text-white transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 8v13H3V8"></path><path d="M1 3h22v5H1z"></path><path d="M10 12h4"></path></svg>

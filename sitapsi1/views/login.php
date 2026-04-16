@@ -5,7 +5,7 @@ require_once '../config/database.php';
 
 // Cek jika sudah login, arahkan ke dashboard sesuai role
 if (isset($_SESSION['user_id'])) {
-    if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'SuperAdmin') {
+    if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'AdminPusat') {
         header('Location: admin/dashboard.php');
     } else {
         header('Location: guru/input_pelanggaran.php');

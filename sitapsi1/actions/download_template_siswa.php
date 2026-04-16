@@ -4,7 +4,7 @@ session_start();
 require_once '../config/database.php';
 
 // Validasi Keamanan
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'SuperAdmin' && $_SESSION['role'] !== 'Admin')) {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'AdminPusat' && $_SESSION['role'] !== 'Admin')) {
     die("Akses ditolak!");
 }
 

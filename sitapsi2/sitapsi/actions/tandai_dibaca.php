@@ -3,7 +3,7 @@ session_start();
 require_once '../../config/database.php'; // Panggil config
 
 // Validasi hanya Admin yang bisa mengeksekusi
-if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'SuperAdmin']) && isset($_GET['id'])) {
+if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'AdminPusat']) && isset($_GET['id'])) {
     $id_feedback = $_GET['id'];
     
     try {

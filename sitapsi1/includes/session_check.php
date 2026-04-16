@@ -40,7 +40,7 @@ function checkRole($allowed_roles = []) {
 
 
 function requireAdmin() {
-    checkRole(['Admin', 'SuperAdmin', 'KepalaSekolah']);
+    checkRole(['Admin', 'AdminPusat', 'KepalaSekolah']);
 }
 
 function requireGuru() {
@@ -64,7 +64,7 @@ function isKepsek() {
 }
 
 function isAdmin() {
-    return isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'SuperAdmin']);
+    return isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'AdminPusat']);
 }
 
 function isGuru() {
