@@ -41,19 +41,19 @@ try {
         throw new Exception(
             'Tidak dapat menghapus! Siswa ini memiliki ' 
             . $cek_pelanggaran['total'] 
-            . ' riwayat pelanggaran. Ubah status menjadi Lulus/Keluar.'
+            . ' riwayat pelanggaran. Jika dihapus, status siswa menjadi Dikeluarkan/Keluar.'
         );
-    }
+    } // Kita akan tetap lanjut, tapi memakai Soft Delete.
 
-    // Hapus dari tb_anggota_kelas dulu
-    executeQuery("DELETE FROM tb_anggota_kelas WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
+    // 1. Cabut keanggotaan kelas aktifnya supaya tidak bisa absen lagi
+    // executeQuery("DELETE FROM tb_anggota_kelas WHERE no_induk = :no_induk", ['no_induk' => $no_induk]); // Dihapus logikanya, karena bisa jadi butuh riwayat kelas
 
-    // Hapus dari tb_siswa
-    executeQuery("DELETE FROM tb_siswa WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
+    // 2. Ubah Status Siswa menjadi Nonaktif / Dikeluarkan / Keluar
+    executeQuery("UPDATE tb_siswa SET status_aktif = 'Keluar' WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
 
     $pdo->commit();
 
-    $_SESSION['success_message'] = "✅ Siswa {$siswa['nama_siswa']} ($no_induk) berhasil dihapus permanen.";
+    $_SESSION['success_message'] = "✅ Siswa {$siswa['nama_siswa']} ($no_induk) berhasil diarsipkan/dikeluarkan dari sistem.";
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {

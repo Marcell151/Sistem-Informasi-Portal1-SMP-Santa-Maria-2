@@ -11,18 +11,31 @@ require_once '../includes/session_check.php';
 requireAdmin();
 if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk mengubah Master Data Guru.");
 
+$filter_status = $_GET['status'] ?? 'Aktif';
+$search = $_GET['search'] ?? '';
+
 // Ambil daftar kelas untuk dropdown
 $kelas_list = fetchAll("SELECT id_kelas, nama_kelas FROM tb_kelas ORDER BY tingkat, nama_kelas");
 
-// Query guru dengan info wali kelas
-$guru_list = fetchAll("
+$sql = "
     SELECT 
         g.*,
         k.nama_kelas
     FROM tb_guru g
     LEFT JOIN tb_kelas k ON g.id_kelas = k.id_kelas
-    ORDER BY g.nama_guru
-");
+    WHERE g.status = :status
+";
+
+$params = ['status' => $filter_status];
+
+if (!empty($search)) {
+    $sql .= " AND (g.nama_guru LIKE :search OR g.nip LIKE :search)";
+    $params['search'] = "%$search%";
+}
+
+$sql .= " ORDER BY g.nama_guru";
+
+$guru_list = fetchAll($sql, $params);
 
 $success = $_SESSION['success_message'] ?? '';
 $error = $_SESSION['error_message'] ?? '';
@@ -77,6 +90,25 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                 <p class="font-medium text-sm"><?= htmlspecialchars($error) ?></p>
             </div>
             <?php endif; ?>
+
+            <div class="<?= $card_class ?> p-5 mb-6">
+                <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label class="<?= $label_class ?>">Pencarian</label>
+                        <div class="relative">
+                            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari Nama atau NIP Guru..." class="<?= $input_class ?> pl-10">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="<?= $label_class ?>">Status Akses</label>
+                        <select name="status" class="<?= $input_class ?>" onchange="this.form.submit()">
+                            <option value="Aktif" <?= $filter_status === 'Aktif' ? 'selected' : '' ?>>Aktif Saja</option>
+                            <option value="Non-Aktif" <?= $filter_status === 'Non-Aktif' ? 'selected' : '' ?>>Non-Aktif (Arsip)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
 
             <div class="<?= $card_class ?> overflow-hidden">
                 <div class="p-4 border-b border-[#E2E8F0] bg-slate-50/50 flex justify-between items-center">

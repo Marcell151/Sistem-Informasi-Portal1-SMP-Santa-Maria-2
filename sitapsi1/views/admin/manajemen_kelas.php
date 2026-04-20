@@ -106,32 +106,50 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                 <div class="p-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                         <?php foreach ($kelas_items as $k): 
-                            // Hitung jumlah siswa
+                            // Hitung jumlah siswa di tahun aktif
                             $tahun_aktif = fetchOne("SELECT id_tahun FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
-                            $jumlah_siswa = fetchOne("
+                            $jumlah_siswa_aktif = 0;
+                            if ($tahun_aktif) {
+                                $jumlah_siswa_aktif = fetchOne("
+                                    SELECT COUNT(*) as total 
+                                    FROM tb_anggota_kelas 
+                                    WHERE id_kelas = :id 
+                                    AND id_tahun = :tahun
+                                ", [
+                                    'id' => $k['id_kelas'],
+                                    'tahun' => $tahun_aktif['id_tahun']
+                                ])['total'] ?? 0;
+                            }
+                            
+                            // Hitung total data historis yang terkait dengan kelas ini sepanjang masa
+                            $total_historis = fetchOne("
                                 SELECT COUNT(*) as total 
                                 FROM tb_anggota_kelas 
-                                WHERE id_kelas = :id 
-                                AND id_tahun = :tahun
-                            ", [
-                                'id' => $k['id_kelas'],
-                                'tahun' => $tahun_aktif['id_tahun']
-                            ])['total'] ?? 0;
+                                WHERE id_kelas = :id
+                            ", ['id' => $k['id_kelas']])['total'] ?? 0;
                         ?>
-                        <div class="bg-white border border-[#E2E8F0] rounded-xl p-4 hover:border-[#000080]/30 hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div class="bg-white border border-[#E2E8F0] rounded-xl p-4 hover:border-[#000080]/30 hover:shadow-md transition-all group flex flex-col justify-between relative overflow-hidden">
                             <div class="text-center mb-4 pt-2">
                                 <h3 class="text-2xl font-extrabold text-slate-800 group-hover:text-[#000080] transition-colors"><?= htmlspecialchars($k['nama_kelas']) ?></h3>
-                                <p class="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-wider bg-slate-50 inline-block px-2 py-0.5 rounded"><?= $jumlah_siswa ?> siswa</p>
+                                <p class="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-wider bg-slate-50 inline-block px-2 py-0.5 rounded"><?= $jumlah_siswa_aktif ?> siswa saat ini</p>
                             </div>
                             <div class="flex space-x-2 border-t border-[#E2E8F0] pt-3">
                                 <button onclick='editKelas(<?= json_encode($k) ?>)' 
                                         class="flex-1 p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors flex justify-center" title="Edit">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button onclick="hapusKelas(<?= $k['id_kelas'] ?>, '<?= htmlspecialchars($k['nama_kelas']) ?>', <?= $jumlah_siswa ?>)" 
-                                        class="flex-1 p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors flex justify-center" title="Hapus">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
+                                
+                                <?php if ($total_historis > 0): ?>
+                                    <button type="button" class="flex-1 p-2 bg-slate-100 text-slate-300 rounded-lg cursor-not-allowed flex justify-center" 
+                                            title="Terkunci: Ada <?= $total_historis ?> riwayat siswa yang bersekolah di kelas ini. Kelas tidak dapat dihapus.">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    </button>
+                                <?php else: ?>
+                                    <button onclick="hapusKelas(<?= $k['id_kelas'] ?>, '<?= htmlspecialchars($k['nama_kelas']) ?>')" 
+                                            class="flex-1 p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 hover:text-red-700 transition-colors flex justify-center" title="Hapus Permanen">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -232,13 +250,8 @@ function editKelas(data) {
     document.getElementById('modal-edit').classList.remove('hidden');
 }
 
-function hapusKelas(id, nama, jumlahSiswa) {
-    if (jumlahSiswa > 0) {
-        alert(`⚠️ Tidak dapat menghapus kelas ${nama}!\n\nMasih ada ${jumlahSiswa} siswa di kelas ini.\nPindahkan/hapus siswa terlebih dahulu.`);
-        return;
-    }
-    
-    if (confirm(`⚠️ Yakin ingin menghapus kelas ${nama}?`)) {
+function hapusKelas(id, nama) {
+    if (confirm(`⚠️ Yakin ingin MENGHAPUS PERMANEN kelas ${nama}?\n\nHanya kelas kosong (tidak memiliki riwayat siswa sama sekali) yang dapat dihapus.`)) {
         window.location.href = `../../actions/hapus_kelas.php?id=${id}`;
     }
 }

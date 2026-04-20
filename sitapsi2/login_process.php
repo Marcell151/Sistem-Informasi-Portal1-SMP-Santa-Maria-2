@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $username = trim($_POST['username']);
             $password = $_POST['password']; 
 
-            $admin = fetchOne("SELECT * FROM tb_admin WHERE username = :user AND password = :pass", [
+            $admin = fetchOne("SELECT * FROM tb_admin WHERE username = :user AND password = :pass AND status = 'Aktif'", [
                 'user' => $username,
                 'pass' => $password
             ]);
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: launchpad.php");
                 exit;
             } else {
-                throw new Exception("Username atau Password Admin salah!");
+                throw new Exception("Username/Password salah, atau akun Admin sedang dinonaktifkan!");
             }
 
         } elseif ($login_type === 'guru') {

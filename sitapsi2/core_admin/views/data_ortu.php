@@ -12,6 +12,7 @@ requireAdmin();
 if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk mengubah Master Data Orang Tua.");
 
 $search = $_GET['search'] ?? '';
+$filter_status = $_GET['status'] ?? '1';
 
 // Query untuk mengambil data orang tua sekaligus menghitung berapa anak yang terikat
 $sql = "
@@ -24,15 +25,17 @@ $sql = "
         o.pekerjaan_ibu,
         o.no_hp_ortu,
         o.alamat,
+        o.is_active,
         COUNT(s.no_induk) as jumlah_anak
     FROM tb_orang_tua o
     LEFT JOIN tb_siswa s ON o.id_ortu = s.id_ortu
+    WHERE o.is_active = :status
 ";
 
-$params = [];
+$params = ['status' => $filter_status];
 
 if (!empty($search)) {
-    $sql .= " WHERE o.nik_ortu LIKE :search1 OR o.nama_ayah LIKE :search2 OR o.nama_ibu LIKE :search3";
+    $sql .= " AND (o.nik_ortu LIKE :search1 OR o.nama_ayah LIKE :search2 OR o.nama_ibu LIKE :search3)";
     $params['search1'] = "%$search%";
     $params['search2'] = "%$search%";
     $params['search3'] = "%$search%";
@@ -98,15 +101,21 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
             <?php endif; ?>
 
             <div class="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-5">
-                <form method="GET" class="flex gap-4 items-end">
-                    <div class="flex-1">
+                <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
                         <label class="<?= $label_class ?>">Pencarian Wali Murid</label>
                         <div class="relative">
                             <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari NIK, Nama Ayah, atau Nama Ibu..." class="w-full px-4 py-2.5 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#000080]/20 focus:border-[#000080] text-sm text-slate-700 bg-white transition-all pl-10">
                             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </div>
                     </div>
-                    <button type="submit" class="<?= $btn_primary ?> h-[42px] px-6">Cari Data</button>
+                    <div>
+                        <label class="<?= $label_class ?>">Status Akun</label>
+                        <select name="status" class="<?= $input_class ?>" onchange="this.form.submit()">
+                            <option value="1" <?= $filter_status == '1' ? 'selected' : '' ?>>Aktif Saja</option>
+                            <option value="0" <?= $filter_status == '0' ? 'selected' : '' ?>>Non-Aktif (Terhapus)</option>
+                        </select>
+                    </div>
                 </form>
             </div>
 
@@ -122,13 +131,14 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
                                 <th class="p-4 font-bold">NIK (Akun Login)</th>
                                 <th class="p-4 font-bold text-center">Jumlah Anak</th>
                                 <th class="p-4 font-bold text-center">Kontak (WA)</th>
+                                <th class="p-4 font-bold text-center">Status</th>
                                 <th class="p-4 font-bold text-center">Aksi Sistem</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E8F0]">
                             <?php if(empty($ortu_list)): ?>
                             <tr>
-                                <td colspan="5" class="p-8 text-center text-slate-400 text-sm font-medium">Tidak ada data wali murid ditemukan</td>
+                                <td colspan="6" class="p-8 text-center text-slate-400 text-sm font-medium">Tidak ada data wali murid ditemukan</td>
                             </tr>
                             <?php else: ?>
                             <?php foreach($ortu_list as $o): 
@@ -157,6 +167,11 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
                                 </td>
                                 <td class="p-4 text-center text-slate-600 font-medium text-xs">
                                     <?= htmlspecialchars($o['no_hp_ortu'] ?? '-') ?>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold <?= $o['is_active'] ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200' ?>">
+                                        <?= $o['is_active'] ? 'Aktif' : 'Non-Aktif' ?>
+                                    </span>
                                 </td>
                                 <td class="p-4 text-center">
                                     <div class="flex items-center justify-center space-x-2">
@@ -296,6 +311,13 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
                         <label class="<?= $label_class ?>">Alamat Lengkap</label>
                         <textarea name="alamat" id="edit_alamat" rows="2" class="<?= $input_class ?> resize-none"></textarea>
                     </div>
+                    <div class="sm:col-span-2 pt-2">
+                        <label class="<?= $label_class ?>">Status Akses Akun</label>
+                        <select name="is_active" id="edit_is_active" class="<?= $input_class ?>">
+                            <option value="1">Aktif (Bisa Login & Dipilih di Siswa)</option>
+                            <option value="0">Non-Aktif (Terhapus / Arsip)</option>
+                        </select>
+                    </div>
                 </div>
             </form>
         </div>
@@ -327,14 +349,15 @@ function editOrtu(data) {
     document.getElementById('edit_pekerjaan_ibu').value = data.pekerjaan_ibu;
     document.getElementById('edit_no_hp_ortu').value = data.no_hp_ortu;
     document.getElementById('edit_alamat').value = data.alamat;
+    document.getElementById('edit_is_active').value = data.is_active;
     
     document.getElementById('modal-edit').classList.remove('hidden');
 }
 
 function hapusOrtu(id, nik, jumlah_anak) {
-    let msg = `⚠️ Yakin ingin menghapus Data Wali Murid (NIK: ${nik})?`;
+    let msg = `⚠️ Yakin ingin MENONAKTIFKAN Akun Wali Murid (NIK: ${nik})?\n\nData tidak akan dihapus permanen, namun akun ini tidak akan bisa login lagi ke portal.`;
     if (jumlah_anak > 0) {
-        msg += `\n\nPERINGATAN: Ada ${jumlah_anak} data siswa yang terhubung dengan akun ini! Jika dihapus, siswa tersebut tidak akan memiliki akses Portal Orang Tua sampai di-set ulang.`;
+        msg += `\n(Akun ini terkait dengan ${jumlah_anak} siswa)`;
     }
     
     if (confirm(msg)) {

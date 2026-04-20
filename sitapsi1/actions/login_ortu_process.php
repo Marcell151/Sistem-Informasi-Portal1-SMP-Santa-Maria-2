@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Enkripsi inputan password menggunakan MD5
         $password_hashed = md5($password_raw);
 
-        // Cek data di tabel tb_orang_tua (Gunakan username)
-        $ortu = fetchOne("SELECT * FROM tb_orang_tua WHERE username = :user AND password = :pass LIMIT 1", [
+        // Cek data di tabel tb_orang_tua (Gunakan username dan cek is_active)
+        $ortu = fetchOne("SELECT * FROM tb_orang_tua WHERE username = :user AND password = :pass AND is_active = 1 LIMIT 1", [
             'user' => $username,
             'pass' => $password_hashed
         ]);
@@ -54,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
             
         } else {
-            // LOGIN GAGAL: Username atau Password salah
-            $_SESSION['error_message'] = "❌ Username atau Password tidak sesuai.";
+            // LOGIN GAGAL: Username atau Password salah, atau Dinonaktifkan
+            $_SESSION['error_message'] = "❌ Username/Password salah, atau Akun Anda Dinonaktifkan.";
             header("Location: ../views/ortu/login.php");
             exit;
         }

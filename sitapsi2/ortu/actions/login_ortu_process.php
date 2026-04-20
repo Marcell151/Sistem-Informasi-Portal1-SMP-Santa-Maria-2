@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password_hashed = md5($password_raw);
 
         // Cek data di tabel tb_orang_tua
-        $ortu = fetchOne("SELECT * FROM tb_orang_tua WHERE nik_ortu = :nik AND password = :pass LIMIT 1", [
+        $ortu = fetchOne("SELECT * FROM tb_orang_tua WHERE nik_ortu = :nik AND password = :pass AND is_active = 1 LIMIT 1", [
             'nik' => $nik,
             'pass' => $password_hashed
         ]);
@@ -61,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
             
         } else {
-            // LOGIN GAGAL: NIK atau Password salah
-            $_SESSION['error_message'] = "❌ NIK atau Password tidak sesuai.";
+            // LOGIN GAGAL: NIK atau Password salah, ATAU akun sedang dinonaktifkan
+            $_SESSION['error_message'] = "❌ NIK/Password salah, atau Akun Anda sedang Dinonaktifkan oleh Admin.";
             header("Location: ../login.php");
             exit;
         }

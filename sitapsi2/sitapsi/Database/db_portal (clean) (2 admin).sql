@@ -13,6 +13,7 @@ CREATE TABLE tb_admin (
     password VARCHAR(255) NOT NULL, 
     nama_lengkap VARCHAR(100) NOT NULL,
     role ENUM('AdminPusat', 'Admin', 'KepalaSekolah') DEFAULT 'Admin',
+    status ENUM('Aktif', 'Suspend') DEFAULT 'Aktif',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -235,6 +236,7 @@ CREATE TABLE tb_riwayat_sp (
         pekerjaan_ibu VARCHAR(100),
         no_hp_ortu VARCHAR(15) UNIQUE, -- [PENYESUAIAN: Dibuat UNIQUE agar tidak ada double HP]
         alamat TEXT,
+        is_active TINYINT(1) DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 

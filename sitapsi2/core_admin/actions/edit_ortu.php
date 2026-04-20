@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pekerjaan_ibu = trim($_POST['pekerjaan_ibu']);
     $no_hp = trim($_POST['no_hp_ortu']);
     $alamat = trim($_POST['alamat']);
+    $is_active = $_POST['is_active'];
 
     try {
         // Jika NIK diubah, cek apakah NIK baru sudah dipakai orang lain
@@ -28,9 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         executeQuery("
             UPDATE tb_orang_tua SET 
                 nik_ortu = ?, nama_ayah = ?, pekerjaan_ayah = ?, 
-                nama_ibu = ?, pekerjaan_ibu = ?, no_hp_ortu = ?, alamat = ?
+                nama_ibu = ?, pekerjaan_ibu = ?, no_hp_ortu = ?, alamat = ?,
+                is_active = ?
             WHERE id_ortu = ?
-        ", [$nik_baru, $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu, $no_hp, $alamat, $id_ortu]);
+        ", [$nik_baru, $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu, $no_hp, $alamat, $is_active, $id_ortu]);
 
         $_SESSION['success_message'] = "✅ Data Wali Murid berhasil diperbarui!";
 

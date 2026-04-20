@@ -11,6 +11,9 @@ if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk mengubah Mast
 // Ambil daftar kelas untuk dropdown
 $kelas_list = fetchAll("SELECT id_kelas, nama_kelas FROM tb_kelas ORDER BY tingkat, nama_kelas");
 
+// Ambil filter status dari URL (default Aktif)
+$filter_status = $_GET['status'] ?? 'Aktif';
+
 // Query guru dengan info wali kelas
 $guru_list = fetchAll("
     SELECT 
@@ -18,8 +21,9 @@ $guru_list = fetchAll("
         k.nama_kelas
     FROM tb_guru g
     LEFT JOIN tb_kelas k ON g.id_kelas = k.id_kelas
+    WHERE g.status = :status
     ORDER BY g.nama_guru
-");
+", ['status' => $filter_status]);
 
 $success = $_SESSION['success_message'] ?? '';
 $error = $_SESSION['error_message'] ?? '';
@@ -77,8 +81,17 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
 
             <div class="<?= $card_class ?> overflow-hidden">
                 <div class="p-4 border-b border-[#E2E8F0] bg-slate-50/50 flex justify-between items-center">
+                <div class="p-4 border-b border-[#E2E8F0] bg-slate-50/50 flex justify-between items-center flex-wrap gap-3">
                     <span class="font-bold text-slate-800 text-sm">Daftar Guru / Pegawai</span>
-                    <span class="px-2.5 py-1 bg-slate-200 text-slate-700 rounded-md text-[10px] font-bold">Total: <?= count($guru_list) ?> Data</span>
+                    <div class="flex items-center gap-3">
+                        <form method="GET" class="flex items-center">
+                            <select name="status" onchange="this.form.submit()" class="text-xs font-bold border-[#E2E8F0] rounded-md shadow-sm px-2 py-1 focus:outline-none focus:border-[#000080]">
+                                <option value="Aktif" <?= $filter_status === 'Aktif' ? 'selected' : '' ?>>Hanya Guru Aktif</option>
+                                <option value="Non-Aktif" <?= $filter_status === 'Non-Aktif' ? 'selected' : '' ?>>Guru Non-Aktif (Terarsip)</option>
+                            </select>
+                        </form>
+                        <span class="px-2.5 py-1 bg-slate-200 text-slate-700 rounded-md text-[10px] font-bold">Total: <?= count($guru_list) ?> Data</span>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
@@ -132,17 +145,23 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                     </span>
                                 </td>
                                 <td class="p-4 text-center">
-                                    <button onclick='editGuru(<?= json_encode([
-                                        "id_guru" => $guru["id_guru"],
-                                        "nama_guru" => $guru["nama_guru"],
-                                        "nip" => $guru["nip"],
-                                        "pin_validasi" => $guru["pin_validasi"],
-                                        "id_kelas" => $guru["id_kelas"],
-                                        "status" => $guru["status"]
-                                    ]) ?>)' 
-                                    class="p-1.5 bg-white border border-[#E2E8F0] text-slate-600 rounded-md hover:bg-slate-50 hover:text-[#000080] transition-colors shadow-sm" title="Edit Data">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                    </button>
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <button onclick='editGuru(<?= json_encode([
+                                            "id_guru" => $guru["id_guru"],
+                                            "nama_guru" => $guru["nama_guru"],
+                                            "nip" => $guru["nip"],
+                                            "pin_validasi" => $guru["pin_validasi"],
+                                            "id_kelas" => $guru["id_kelas"],
+                                            "status" => $guru["status"]
+                                        ]) ?>)' 
+                                        class="p-1.5 bg-white border border-[#E2E8F0] text-slate-600 rounded-md hover:bg-slate-50 hover:text-[#000080] transition-colors shadow-sm" title="Edit Data">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
+                                        <button onclick="if(confirm('⚠️ Yakin ingin me-nonaktifkan Guru ini? Akses portalnya akan dicabut.')) window.location.href='../../actions/hapus_guru.php?id=<?= $guru['id_guru'] ?>'"
+                                                class="p-1.5 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition-colors shadow-sm" title="Hapus / Nonaktifkan">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

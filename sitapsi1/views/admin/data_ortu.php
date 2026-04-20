@@ -14,6 +14,8 @@ if (isKepsek()) die("Akses Ditolak: Anda tidak memiliki izin untuk mengubah Mast
 
 $search = $_GET['search'] ?? '';
 
+$filter_status = $_GET['status'] ?? '1';
+
 // Query untuk mengambil data orang tua (Menyesuaikan kolom database baru)
 $sql = "
     SELECT 
@@ -26,16 +28,18 @@ $sql = "
         o.pekerjaan_ibu,
         o.no_hp_ortu,
         o.alamat,
+        o.is_active,
         COUNT(s.no_induk) as jumlah_anak
     FROM tb_orang_tua o
     LEFT JOIN tb_siswa s ON o.id_ortu = s.id_ortu
+    WHERE o.is_active = :status
 ";
 
-$params = [];
+$params = ['status' => $filter_status];
 
 if (!empty($search)) {
     // Pencarian disesuaikan
-    $sql .= " WHERE o.username LIKE :search1 OR o.nama_wali LIKE :search2 OR o.no_hp_ortu LIKE :search3";
+    $sql .= " AND (o.username LIKE :search1 OR o.nama_wali LIKE :search2 OR o.no_hp_ortu LIKE :search3)";
     $params['search1'] = "%$search%";
     $params['search2'] = "%$search%";
     $params['search3'] = "%$search%";
@@ -101,15 +105,22 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
             <?php endif; ?>
 
             <div class="bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-5">
-                <form method="GET" class="flex gap-4 items-end">
-                    <div class="flex-1">
+                <form method="GET" class="flex flex-col sm:flex-row gap-4 items-end">
+                    <div class="flex-1 w-full">
                         <label class="<?= $label_class ?>">Pencarian Wali Murid</label>
                         <div class="relative">
                             <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Cari Username, Nama Wali, atau No HP..." class="w-full px-4 py-2.5 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#000080]/20 focus:border-[#000080] text-sm text-slate-700 bg-white transition-all pl-10">
                             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </div>
                     </div>
-                    <button type="submit" class="<?= $btn_primary ?> h-[42px] px-6">Cari Data</button>
+                    <div class="w-full sm:w-48">
+                        <label class="<?= $label_class ?>">Status Akun</label>
+                        <select name="status" class="w-full px-4 py-2.5 border border-[#E2E8F0] rounded-lg text-sm bg-white focus:border-[#000080]">
+                            <option value="1" <?= $filter_status == '1' ? 'selected' : '' ?>>Aktif Saja</option>
+                            <option value="0" <?= $filter_status == '0' ? 'selected' : '' ?>>Non-Aktif Saja</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="<?= $btn_primary ?> h-[42px] px-6 w-full sm:w-auto">Filter Data</button>
                 </form>
             </div>
 
@@ -144,7 +155,14 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                                         </div>
                                         <div>
-                                            <p class="font-extrabold text-slate-800 text-[14px]"><?= htmlspecialchars($o['nama_wali']) ?></p>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p class="font-extrabold text-slate-800 text-[14px]"><?= htmlspecialchars($o['nama_wali']) ?></p>
+                                                <?php if($o['is_active']): ?>
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">AKTIF</span>
+                                                <?php else: ?>
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-50 text-red-600 border border-red-200">NON-AKTIF</span>
+                                                <?php endif; ?>
+                                            </div>
                                             <p class="text-[11px] font-medium text-slate-500 mt-0.5">Ayah: <?= htmlspecialchars($o['nama_ayah'] ?: '-') ?> | Ibu: <?= htmlspecialchars($o['nama_ibu'] ?: '-') ?></p>
                                         </div>
                                     </div>
@@ -171,7 +189,7 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                         </button>
                                         <button onclick="hapusOrtu(<?= $o['id_ortu'] ?>, '<?= htmlspecialchars($o['username'], ENT_QUOTES) ?>', <?= $o['jumlah_anak'] ?>)" 
-                                                class="p-1.5 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition-colors shadow-sm" title="Hapus Data">
+                                                class="p-1.5 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition-colors shadow-sm" title="Non-aktifkan Akun">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
                                     </div>
@@ -300,6 +318,14 @@ $label_class = "block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking
                         <label class="<?= $label_class ?>">Alamat Lengkap</label>
                         <textarea name="alamat" id="edit_alamat" rows="2" class="<?= $input_class ?> resize-none"></textarea>
                     </div>
+                    <div class="sm:col-span-2 pt-2 border-t border-[#E2E8F0]">
+                        <label class="<?= $label_class ?>">Status Akses Login Portal</label>
+                        <select name="is_active" id="edit_is_active" class="<?= $input_class ?>">
+                            <option value="1">Aktif (Bisa Login)</option>
+                            <option value="0">Non-Aktif (Terblokir Sementara)</option>
+                        </select>
+                        <p class="text-[10px] text-slate-500 mt-1">Ubah ke "Aktif" jika Anda ingin memulihkan akun yang tidak sengaja terhapus/dinonaktifkan.</p>
+                    </div>
                 </div>
             </form>
         </div>
@@ -331,14 +357,15 @@ function editOrtu(data) {
     document.getElementById('edit_pekerjaan_ibu').value = data.pekerjaan_ibu;
     document.getElementById('edit_no_hp_ortu').value = data.no_hp_ortu;
     document.getElementById('edit_alamat').value = data.alamat;
+    document.getElementById('edit_is_active').value = data.is_active;
     
     document.getElementById('modal-edit').classList.remove('hidden');
 }
 
 function hapusOrtu(id, username, jumlah_anak) {
-    let msg = `⚠️ Yakin ingin menghapus Data Wali Murid (Username: ${username})?`;
+    let msg = `⚠️ Yakin ingin me-nonaktifkan akses Wali Murid (Username: ${username})?`;
     if (jumlah_anak > 0) {
-        msg += `\n\nPERINGATAN: Ada ${jumlah_anak} data siswa yang terhubung dengan akun ini! Jika dihapus, siswa tersebut tidak akan memiliki akses Portal Orang Tua sampai di-set ulang.`;
+        msg += `\n\nPERINGATAN: Ada ${jumlah_anak} data siswa yang terhubung dengan akun ini! Jika dinonaktifkan, siswa tersebut tidak akan dapat mengakses Portal Orang Tua.`;
     }
     
     if (confirm(msg)) {

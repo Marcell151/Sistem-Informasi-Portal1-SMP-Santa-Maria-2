@@ -522,7 +522,7 @@ function editSiswa(data) {
 }
 
 function hapusSiswa(no_induk, nama) {
-    if (confirm(`⚠️ Hapus siswa: ${nama} (${no_induk})?\n\nSiswa yang memiliki riwayat pelanggaran tidak dapat dihapus.\nDisarankan ubah status menjadi Lulus/Keluar.`)) {
+    if (confirm(`⚠️ Arsipkan / Keluarkan siswa: ${nama} (${no_induk})?\n\nSistem tidak akan menghapus data secara permanen, melainkan hanya akan mengubah statusnya menjadi 'Keluar'.`)) {
         window.location.href = '../actions/hapus_siswa.php?no_induk=' + encodeURIComponent(no_induk);
     }
 }

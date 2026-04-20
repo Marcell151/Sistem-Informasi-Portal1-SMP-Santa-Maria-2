@@ -26,27 +26,8 @@ try {
         throw new Exception('Siswa tidak ditemukan');
     }
 
-    // Cek apakah ada pelanggaran aktif
-    $cek_pelanggaran = fetchOne("
-        SELECT COUNT(*) as total
-        FROM tb_pelanggaran_header h
-        JOIN tb_anggota_kelas a ON h.id_anggota = a.id_anggota
-        WHERE a.no_induk = :no_induk
-    ", ['no_induk' => $no_induk]);
-
-    if ($cek_pelanggaran['total'] > 0) {
-        throw new Exception(
-            'Tidak dapat menghapus! Siswa ini memiliki ' 
-            . $cek_pelanggaran['total'] 
-            . ' riwayat pelanggaran. Ubah status menjadi Lulus/Keluar.'
-        );
-    }
-
-    // Hapus dari tb_anggota_kelas dulu
-    executeQuery("DELETE FROM tb_anggota_kelas WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
-
     // Hapus dari tb_siswa
-    executeQuery("DELETE FROM tb_siswa WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
+    executeQuery("UPDATE tb_siswa SET status_aktif = 'Keluar' WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
 
     $pdo->commit();
 

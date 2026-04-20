@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pekerjaan_ibu = trim($_POST['pekerjaan_ibu']);
     $no_hp_baru = trim($_POST['no_hp_ortu']);
     $alamat = trim($_POST['alamat']);
+    $is_active = $_POST['is_active'];
 
     try {
         // Cek duplikasi HP jika diganti
@@ -29,9 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         executeQuery("
             UPDATE tb_orang_tua SET 
                 nama_wali = ?, nama_ayah = ?, pekerjaan_ayah = ?, 
-                nama_ibu = ?, pekerjaan_ibu = ?, no_hp_ortu = ?, alamat = ?
+                nama_ibu = ?, pekerjaan_ibu = ?, no_hp_ortu = ?, alamat = ?,
+                is_active = ?
             WHERE id_ortu = ?
-        ", [$nama_wali, $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu, $no_hp_baru, $alamat, $id_ortu]);
+        ", [$nama_wali, $nama_ayah, $pekerjaan_ayah, $nama_ibu, $pekerjaan_ibu, $no_hp_baru, $alamat, $is_active, $id_ortu]);
 
         $_SESSION['success_message'] = "✅ Data Wali Murid berhasil diperbarui!";
 

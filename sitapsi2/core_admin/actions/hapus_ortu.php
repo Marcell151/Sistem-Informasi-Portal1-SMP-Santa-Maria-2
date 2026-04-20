@@ -12,14 +12,14 @@ if ($id_ortu) {
         $pdo = getDBConnection();
         $pdo->beginTransaction();
 
-        // 1. Kosongkan relasi di anak (Supaya aplikasi tidak error, siswa ini jadi tidak punya portal ortu)
-        executeQuery("UPDATE tb_siswa SET id_ortu = NULL WHERE id_ortu = ?", [$id_ortu]);
+        // 1. Kosongkan relasi di anak (JANGAN DIKOSONGKAN agar riwayat ortu tetap ada)
+        // executeQuery("UPDATE tb_siswa SET id_ortu = NULL WHERE id_ortu = ?", [$id_ortu]);
 
-        // 2. Hapus akun orang tua
-        executeQuery("DELETE FROM tb_orang_tua WHERE id_ortu = ?", [$id_ortu]);
+        // 2. Soft Hapus akun orang tua (Non-aktifkan login ortu)
+        executeQuery("UPDATE tb_orang_tua SET is_active = 0 WHERE id_ortu = ?", [$id_ortu]);
 
         $pdo->commit();
-        $_SESSION['success_message'] = "✅ Data Wali Murid berhasil dihapus. Akses portal anak terkait telah diputuskan.";
+        $_SESSION['success_message'] = "✅ Data Wali Murid berhasil dinonaktifkan. Akun tidak akan bisa login portal.";
 
     } catch (Exception $e) {
         if (isset($pdo) && $pdo->inTransaction()) {

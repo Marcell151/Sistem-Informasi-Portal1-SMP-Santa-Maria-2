@@ -46,7 +46,7 @@ function handleAdminLogin() {
     // Query admin dengan prepared statement
     $sql = "SELECT id_admin, username, password, nama_lengkap, role 
             FROM tb_admin 
-            WHERE username = :username 
+            WHERE username = :username AND status = 'Aktif'
             LIMIT 1";
     
     $admin = fetchOne($sql, ['username' => $username]);
