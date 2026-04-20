@@ -29,8 +29,9 @@ $sql = "
 $params = ['status' => $filter_status];
 
 if (!empty($search)) {
-    $sql .= " AND (g.nama_guru LIKE :search OR g.nip LIKE :search)";
-    $params['search'] = "%$search%";
+    $sql .= " AND (g.nama_guru LIKE :search1 OR g.nip LIKE :search2)";
+    $params['search1'] = "%$search%";
+    $params['search2'] = "%$search%";
 }
 
 $sql .= " ORDER BY g.nama_guru";
