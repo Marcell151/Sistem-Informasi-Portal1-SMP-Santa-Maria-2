@@ -69,13 +69,13 @@ foreach ($siswa_raw as $s) {
 // Encode ke JSON agar bisa dibaca oleh JavaScript
 $siswa_json = json_encode($siswa_by_kelas);
 
-// Ambil daftar jenis pelanggaran per kategori
-$pelanggaran_kelakuan = fetchAll("SELECT * FROM tb_jenis_pelanggaran WHERE id_kategori = 1 ORDER BY sub_kategori, nama_pelanggaran");
-$pelanggaran_kerajinan = fetchAll("SELECT * FROM tb_jenis_pelanggaran WHERE id_kategori = 2 ORDER BY sub_kategori, nama_pelanggaran");
-$pelanggaran_kerapian = fetchAll("SELECT * FROM tb_jenis_pelanggaran WHERE id_kategori = 3 ORDER BY sub_kategori, nama_pelanggaran");
+// Ambil daftar jenis pelanggaran per kategori (Hanya yang Aktif)
+$pelanggaran_kelakuan = fetchAll("SELECT * FROM tb_jenis_pelanggaran WHERE id_kategori = 1 AND status = 'Aktif' ORDER BY sub_kategori, nama_pelanggaran");
+$pelanggaran_kerajinan = fetchAll("SELECT * FROM tb_jenis_pelanggaran WHERE id_kategori = 2 AND status = 'Aktif' ORDER BY sub_kategori, nama_pelanggaran");
+$pelanggaran_kerapian = fetchAll("SELECT * FROM tb_jenis_pelanggaran WHERE id_kategori = 3 AND status = 'Aktif' ORDER BY sub_kategori, nama_pelanggaran");
 
-// Ambil data referensi sanksi untuk JS
-$sanksi_list = fetchAll("SELECT * FROM tb_sanksi_ref ORDER BY CAST(kode_sanksi AS UNSIGNED)");
+// Ambil data referensi sanksi untuk JS (Hanya yang Aktif)
+$sanksi_list = fetchAll("SELECT * FROM tb_sanksi_ref WHERE status = 'Aktif' ORDER BY CAST(kode_sanksi AS UNSIGNED)");
 $sanksi_json = json_encode($sanksi_list);
 
 $success = $_SESSION['success_message'] ?? '';

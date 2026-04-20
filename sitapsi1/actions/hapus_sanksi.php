@@ -22,15 +22,17 @@ try {
     ", ['id' => $id_sanksi_ref]);
     
     if ($check['total'] > 0) {
-        throw new Exception('Tidak dapat menghapus! Sanksi ini sudah digunakan di ' . $check['total'] . ' transaksi.');
+        // Jika sudah ada transaksi, matikan saja statusnya (Soft Delete)
+        executeQuery("UPDATE tb_sanksi_ref SET status = 'Non-Aktif' WHERE id_sanksi_ref = :id", ['id' => $id_sanksi_ref]);
+        $_SESSION['success_message'] = '⚠️ Sanksi dinonaktifkan karena sudah memiliki riwayat transaksi.';
+    } else {
+        // Jika belum ada transaksi, hapus total (Hard Delete)
+        executeQuery("DELETE FROM tb_sanksi_ref WHERE id_sanksi_ref = :id", ['id' => $id_sanksi_ref]);
+        $_SESSION['success_message'] = '✅ Sanksi berhasil dihapus secara permanen!';
     }
     
-    executeQuery("DELETE FROM tb_sanksi_ref WHERE id_sanksi_ref = :id", ['id' => $id_sanksi_ref]);
-    
-    $_SESSION['success_message'] = '✅ Sanksi berhasil dihapus!';
-    
 } catch (Exception $e) {
-    $_SESSION['error_message'] = '❌ Gagal menghapus: ' . $e->getMessage();
+    $_SESSION['error_message'] = '❌ Gagal memproses: ' . $e->getMessage();
 }
 
 header('Location: ../views/admin/manajemen_aturan.php?tab=sanksi');

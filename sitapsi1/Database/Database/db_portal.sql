@@ -117,7 +117,8 @@ CREATE TABLE tb_kategori_pelanggaran (
 CREATE TABLE tb_sanksi_ref (
     id_sanksi_ref INT AUTO_INCREMENT PRIMARY KEY,
     kode_sanksi VARCHAR(5) NOT NULL, 
-    deskripsi TEXT NOT NULL
+    deskripsi TEXT NOT NULL,
+    status ENUM('Aktif', 'Non-Aktif') DEFAULT 'Aktif'
 );
 
 -- Jenis Pelanggaran (Detail)
@@ -128,6 +129,7 @@ CREATE TABLE tb_jenis_pelanggaran (
     nama_pelanggaran TEXT NOT NULL,
     poin_default INT NOT NULL,
     sanksi_default VARCHAR(50), 
+    status ENUM('Aktif', 'Non-Aktif') DEFAULT 'Aktif',
     
     FOREIGN KEY (id_kategori) REFERENCES tb_kategori_pelanggaran(id_kategori)
 );
