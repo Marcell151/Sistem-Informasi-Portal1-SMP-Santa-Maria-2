@@ -10,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../views/admin/audit_harian.php');
     exit;
 }
+$source = $_POST['source'] ?? 'audit';
+$redirect_url = ($source === 'report') ? '../views/admin/kelola_report.php' : '../views/admin/audit_harian.php';
 
 try {
     $pdo = getDBConnection();
@@ -112,6 +114,6 @@ try {
     $_SESSION['error_message'] = '❌ Gagal update: ' . $e->getMessage();
 }
 
-header('Location: ../views/admin/audit_harian.php');
+header("Location: $redirect_url");
 exit;
 ?>

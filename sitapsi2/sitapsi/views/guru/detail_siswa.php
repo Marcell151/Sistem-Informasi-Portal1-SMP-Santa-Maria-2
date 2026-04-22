@@ -334,7 +334,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                     <th class="p-4 font-bold text-center">Poin</th>
                                     <th class="p-4 font-bold text-center">Lampiran</th>
                                     <th class="p-4 font-bold">Pelapor</th>
-                                    <th class="p-4 font-bold text-center">Status</th>
+                                    <th class="p-4 font-bold text-center">Status Pengajuan</th>
                                     <th class="p-4 font-bold text-center">Kitir</th>
                                 </tr>
                             </thead>

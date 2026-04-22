@@ -11,10 +11,12 @@ if (isKepsek()) {
 }
 
 $id_transaksi = $_GET['id'] ?? null;
+$source = $_GET['source'] ?? 'audit';
+$back_url = ($source === 'report') ? 'kelola_report.php' : 'audit_harian.php';
 
 if (!$id_transaksi) {
     $_SESSION['error_message'] = '❌ ID transaksi tidak valid';
-    header('Location: audit_harian.php');
+    header("Location: $back_url");
     exit;
 }
 
@@ -35,7 +37,7 @@ $transaksi = fetchOne("
 
 if (!$transaksi) {
     $_SESSION['error_message'] = '❌ Transaksi tidak ditemukan';
-    header('Location: audit_harian.php');
+    header("Location: $back_url");
     exit;
 }
 
@@ -87,7 +89,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
     <div class="flex-1 overflow-auto lg:ml-64">
         
         <div class="bg-white border-b border-[#E2E8F0] px-6 py-4 sticky top-0 z-30 flex items-center gap-4">
-            <a href="audit_harian.php" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+            <a href="<?= $back_url ?>" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </a>
             <div>
@@ -117,6 +119,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
             <form action="../../actions/update_pelanggaran.php" method="POST" class="space-y-6">
                 <input type="hidden" name="id_transaksi" value="<?= htmlspecialchars($id_transaksi) ?>">
                 <input type="hidden" name="id_anggota" value="<?= htmlspecialchars($transaksi['id_anggota']) ?>">
+                <input type="hidden" name="source" value="<?= htmlspecialchars($source) ?>">
                 
                 <div class="<?= $card_class ?> overflow-hidden">
                     <div class="flex border-b border-[#E2E8F0] overflow-x-auto bg-slate-50/50">
@@ -214,7 +217,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 pt-2">
-                    <a href="audit_harian.php" class="<?= $btn_outline ?> flex-1">
+                    <a href="<?= $back_url ?>" class="<?= $btn_outline ?> flex-1">
                         Batalkan
                     </a>
                     <button type="submit" class="<?= $btn_primary ?> flex-1">

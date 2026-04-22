@@ -205,9 +205,11 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-2xl shadow-sm";
                     <div class="<?= $card_class ?> overflow-hidden flex flex-col">
                         
                         <div class="flex border-b border-[#E2E8F0] overflow-x-auto bg-slate-50/50 scrollbar-hide">
+                            <?php if ($mode === 'kelas'): ?>
                             <button type="button" onclick="switchTab('kelakuan')" id="tab-kelakuan" class="tab-btn flex-1 py-4 px-4 font-extrabold text-sm text-center transition-colors bg-red-600 text-white border-b-2 border-red-700 whitespace-nowrap">
                                 🚨 KELAKUAN
                             </button>
+                            <?php endif; ?>
                             <button type="button" onclick="switchTab('kerajinan')" id="tab-kerajinan" class="tab-btn flex-1 py-4 px-4 font-bold text-sm text-center transition-colors text-slate-500 hover:text-slate-800 border-b-2 border-transparent hover:bg-slate-100 whitespace-nowrap">
                                 📘 KERAJINAN
                             </button>
@@ -216,6 +218,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-2xl shadow-sm";
                             </button>
                         </div>
 
+                        <?php if ($mode === 'kelas'): ?>
                         <div id="content-kelakuan" class="tab-content p-6 overflow-y-auto h-[400px] md:h-[500px]">
                             <?php $current_sub = ''; foreach ($pelanggaran_kelakuan as $p): 
                                 if ($current_sub !== $p['sub_kategori']): 
@@ -232,6 +235,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-2xl shadow-sm";
                                 </label>
                             <?php endforeach; if ($current_sub !== '') echo '</div>'; ?>
                         </div>
+                        <?php endif; ?>
 
                         <div id="content-kerajinan" class="tab-content p-6 overflow-y-auto h-[400px] md:h-[500px] hidden">
                             <?php $current_sub = ''; foreach ($pelanggaran_kerajinan as $p): 
@@ -489,6 +493,16 @@ document.getElementById('form-pelanggaran').addEventListener('submit', function(
     if (!document.getElementById('select-siswa').value) { e.preventDefault(); alert('⚠️ Pilih siswa dulu!'); return; }
     const checked = document.querySelectorAll('input[name="pelanggaran[]"]:checked');
     if (checked.length === 0) { e.preventDefault(); alert('⚠️ Pilih minimal 1 jenis pelanggaran!'); return; }
+});
+
+// INITIAL TAB SETTING BASED ON MODE
+document.addEventListener('DOMContentLoaded', function() {
+    const mode = '<?= $mode ?>';
+    if (mode === 'kelas') {
+        switchTab('kelakuan');
+    } else {
+        switchTab('kerajinan');
+    }
 });
 </script>
 

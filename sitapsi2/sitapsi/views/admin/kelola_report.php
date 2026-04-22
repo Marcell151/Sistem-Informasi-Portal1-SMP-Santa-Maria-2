@@ -163,6 +163,10 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                         </button>
                                         
                                         <?php if (!isKepsek() && $filter_status === 'Pending'): ?>
+                                            <a href="edit_pelanggaran.php?id=<?= $row['id_transaksi'] ?>&source=report" 
+                                               class="p-1.5 bg-white border border-amber-200 text-amber-600 rounded-md hover:bg-amber-50 transition-colors shadow-sm" title="Edit Transaksi">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </a>
                                             <button onclick="setujuiReport(<?= $row['id_transaksi'] ?>, '<?= addslashes(htmlspecialchars($row['nama_siswa'])) ?>')" 
                                                     class="p-1.5 bg-white border border-emerald-200 text-emerald-600 rounded-md hover:bg-emerald-50 transition-colors shadow-sm" title="Setujui">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
