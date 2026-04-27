@@ -26,12 +26,24 @@ try {
         throw new Exception('Siswa tidak ditemukan');
     }
 
-    // Hapus dari tb_siswa
-    executeQuery("UPDATE tb_siswa SET status_aktif = 'Keluar' WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
+    // Cek apakah ada pelanggaran aktif (untuk informasi tambahan)
+    $cek_pelanggaran = fetchOne("
+        SELECT COUNT(*) as total
+        FROM tb_pelanggaran_header h
+        JOIN tb_anggota_kelas a ON h.id_anggota = a.id_anggota
+        WHERE a.no_induk = :no_induk
+    ", ['no_induk' => $no_induk]);
+
+    // Ubah Status Siswa menjadi Dikeluarkan (Soft Delete)
+    executeQuery("UPDATE tb_siswa SET status_aktif = 'Dikeluarkan' WHERE no_induk = :no_induk", ['no_induk' => $no_induk]);
 
     $pdo->commit();
 
-    $_SESSION['success_message'] = "✅ Siswa {$siswa['nama_siswa']} ($no_induk) berhasil dihapus permanen.";
+    $msg = "✅ Siswa {$siswa['nama_siswa']} ($no_induk) telah berhasil diubah statusnya menjadi Dikeluarkan.";
+    if ($cek_pelanggaran['total'] > 0) {
+        $msg .= " (Siswa memiliki {$cek_pelanggaran['total']} riwayat pelanggaran).";
+    }
+    $_SESSION['success_message'] = $msg;
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {

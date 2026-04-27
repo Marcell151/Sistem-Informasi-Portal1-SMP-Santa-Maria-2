@@ -522,7 +522,7 @@ function editSiswa(data) {
 }
 
 function hapusSiswa(no_induk, nama) {
-    if (confirm(`⚠️ Arsipkan siswa: ${nama} (${no_induk})?\n\nSiswa akan dikeluarkan / diluluskan dari sistem dan disembunyikan dari data guru.`)) {
+    if (confirm(`⚠️ Keluarkan siswa: ${nama} (${no_induk})?\n\nSistem tidak akan menghapus data secara permanen, melainkan hanya akan mengubah statusnya menjadi 'Dikeluarkan'.`)) {
         window.location.href = '../../actions/hapus_siswa.php?no_induk=' + encodeURIComponent(no_induk);
     }
 }
