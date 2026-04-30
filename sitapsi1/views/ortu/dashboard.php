@@ -29,12 +29,15 @@ if ($tahun_aktif) {
             s.no_induk, 
             s.nama_siswa, 
             s.jenis_kelamin, 
+            s.status_aktif,
             k.nama_kelas
         FROM tb_siswa s
         LEFT JOIN tb_anggota_kelas a ON s.no_induk = a.no_induk AND a.id_tahun = :id_tahun
         LEFT JOIN tb_kelas k ON a.id_kelas = k.id_kelas
-        WHERE s.id_ortu = :id_ortu AND s.status_aktif = 'Aktif'
-        ORDER BY s.tanggal_lahir ASC -- Urutkan dari kakak (paling tua) ke adik
+        WHERE s.id_ortu = :id_ortu
+        ORDER BY 
+            CASE WHEN s.status_aktif = 'Aktif' THEN 1 ELSE 2 END ASC,
+            s.tanggal_lahir ASC -- Urutkan dari kakak (paling tua) ke adik
     ", [
         'id_tahun' => $tahun_aktif['id_tahun'],
         'id_ortu' => $id_ortu
@@ -116,7 +119,15 @@ if ($tahun_aktif) {
                     
                     <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full transform translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500 ease-out -z-10"></div>
                     
-                    <div class="flex items-center space-x-4 mb-6 relative z-10">
+                    <?php if ($anak['status_aktif'] !== 'Aktif'): ?>
+                        <div class="absolute top-4 right-4 z-20">
+                            <span class="px-3 py-1 bg-red-100 text-red-700 font-extrabold text-[10px] rounded-lg uppercase tracking-widest border border-red-200 shadow-sm">
+                                STATUS: <?= htmlspecialchars($anak['status_aktif']) ?>
+                            </span>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="flex items-center space-x-4 mb-6 relative z-10 <?= $anak['status_aktif'] !== 'Aktif' ? 'opacity-60' : '' ?>">
                         <div class="w-16 h-16 bg-[#000080]/10 border-2 border-[#000080]/20 rounded-full flex items-center justify-center text-[#000080] font-extrabold text-2xl shadow-inner flex-shrink-0 overflow-hidden">
                             <?= strtoupper(substr($anak['nama_siswa'], 0, 1)) ?>
                         </div>
@@ -124,14 +135,14 @@ if ($tahun_aktif) {
                             <h3 class="text-xl font-extrabold text-slate-800 leading-tight"><?= htmlspecialchars($anak['nama_siswa']) ?></h3>
                             <div class="flex items-center mt-1 space-x-2">
                                 <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wide border border-slate-200">NIS: <?= htmlspecialchars($anak['no_induk']) ?></span>
-                                <span class="px-2 py-0.5 <?= $anak['nama_kelas'] ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200' ?> rounded text-[10px] font-bold uppercase tracking-wide border">
-                                    <?= $anak['nama_kelas'] ? 'Kelas ' . htmlspecialchars($anak['nama_kelas']) : 'Belum Ada Kelas' ?>
+                                <span class="px-2 py-0.5 <?= $anak['nama_kelas'] ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' ?> rounded text-[10px] font-bold uppercase tracking-wide border">
+                                    <?= $anak['nama_kelas'] ? 'Kelas ' . htmlspecialchars($anak['nama_kelas']) : 'Tidak Aktif di Kelas' ?>
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="space-y-3 relative z-10">
+                    <div class="space-y-3 relative z-10 <?= $anak['status_aktif'] !== 'Aktif' ? 'opacity-80' : '' ?>">
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pilih Modul Laporan:</p>
                         
                         <a href="tatib/detail_anak.php?induk=<?= urlencode($anak['no_induk']) ?>" class="flex items-center p-3.5 bg-white border border-slate-200 hover:border-[#000080] hover:shadow-md rounded-2xl transition-all group/btn">

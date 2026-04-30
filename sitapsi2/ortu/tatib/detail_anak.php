@@ -25,10 +25,12 @@ $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tah
 $filter_semester = $_GET['semester'] ?? $tahun_aktif['semester_aktif'];
 
 // 2. Query Siswa + VALIDASI KEPEMILIKAN
+// [MODIFIKASI] Ambil id_anggota TERAKHIR agar siswa yang sudah lulus/keluar tetap bisa dilihat riwayat terakhirnya
 $siswa = fetchOne("
     SELECT 
         s.*,
         a.id_anggota,
+        a.id_tahun,
         a.poin_kelakuan,
         a.poin_kerajinan,
         a.poin_kerapian,
@@ -40,13 +42,15 @@ $siswa = fetchOne("
         k.nama_kelas,
         k.id_kelas
     FROM tb_siswa s
-    JOIN tb_anggota_kelas a ON s.no_induk = a.no_induk
-    JOIN tb_kelas k ON a.id_kelas = k.id_kelas
-    WHERE s.no_induk = :induk AND s.id_ortu = :id_ortu AND a.id_tahun = :id_tahun
+    LEFT JOIN tb_anggota_kelas a ON (
+        s.no_induk = a.no_induk AND 
+        a.id_anggota = (SELECT MAX(id_anggota) FROM tb_anggota_kelas WHERE no_induk = s.no_induk)
+    )
+    LEFT JOIN tb_kelas k ON a.id_kelas = k.id_kelas
+    WHERE s.no_induk = :induk AND s.id_ortu = :id_ortu
 ", [
     'induk' => $no_induk, 
-    'id_ortu' => $id_ortu, 
-    'id_tahun' => $tahun_aktif['id_tahun']
+    'id_ortu' => $id_ortu
 ]);
 
 if (!$siswa) {
@@ -54,6 +58,13 @@ if (!$siswa) {
 }
 
 $id_anggota = $siswa['id_anggota'];
+
+// Gunakan tahun ajaran saat anak tersebut terakhir aktif
+$id_tahun_siswa = $siswa['id_tahun'] ?? $tahun_aktif['id_tahun'];
+
+// Ambil info nama tahun ajaran tersebut
+$tahun_siswa_info = fetchOne("SELECT nama_tahun FROM tb_tahun_ajaran WHERE id_tahun = :id", ['id' => $id_tahun_siswa]);
+$nama_tahun_siswa = $tahun_siswa_info ? $tahun_siswa_info['nama_tahun'] : $tahun_aktif['nama_tahun'];
 
 // 3. LOGIKA REWARD
 $cek_history = fetchOne("
@@ -65,7 +76,7 @@ $cek_history = fetchOne("
     WHERE h.id_anggota = :id_anggota AND h.id_tahun = :id_tahun
 ", [
     'id_anggota' => $id_anggota, 
-    'id_tahun' => $tahun_aktif['id_tahun'],
+    'id_tahun' => $id_tahun_siswa,
     'semester_berjalan' => $tahun_aktif['semester_aktif']
 ]);
 
@@ -104,9 +115,9 @@ function getPelanggaranOrtu($id_anggota, $id_kategori, $id_tahun, $filter_semest
     return fetchAll($sql, ['id' => $id_anggota, 'id_kategori' => $id_kategori, 'id_tahun' => $id_tahun, 'semester' => $filter_semester]);
 }
 
-$pelanggaran_kelakuan = getPelanggaranOrtu($id_anggota, 1, $tahun_aktif['id_tahun'], $filter_semester);
-$pelanggaran_kerajinan = getPelanggaranOrtu($id_anggota, 2, $tahun_aktif['id_tahun'], $filter_semester);
-$pelanggaran_kerapian = getPelanggaranOrtu($id_anggota, 3, $tahun_aktif['id_tahun'], $filter_semester);
+$pelanggaran_kelakuan = getPelanggaranOrtu($id_anggota, 1, $id_tahun_siswa, $filter_semester);
+$pelanggaran_kerajinan = getPelanggaranOrtu($id_anggota, 2, $id_tahun_siswa, $filter_semester);
+$pelanggaran_kerapian = getPelanggaranOrtu($id_anggota, 3, $id_tahun_siswa, $filter_semester);
 
 $card_class = "bg-white border border-slate-200 rounded-2xl shadow-sm";
 
@@ -147,7 +158,7 @@ unset($_SESSION['feedback_success'], $_SESSION['feedback_error']);
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Rapor Kedisiplinan</h1>
-                <p class="text-sm font-medium text-slate-500">Tahun Ajaran <?= $tahun_aktif['nama_tahun'] ?></p>
+                <p class="text-sm font-medium text-slate-500">Tahun Ajaran <?= htmlspecialchars($nama_tahun_siswa) ?> <?= $siswa['status_aktif'] !== 'Aktif' ? '(<span class="text-red-500 font-bold uppercase">' . htmlspecialchars($siswa['status_aktif']) . '</span>)' : '' ?></p>
             </div>
             <a href="../../sitapsi/actions/cetak_detail_siswa.php?id=<?= $id_anggota ?>" target="_blank" class="px-5 py-2.5 bg-[#000080] text-white hover:bg-blue-900 text-sm font-bold rounded-xl shadow-md transition-colors flex items-center justify-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2-2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>

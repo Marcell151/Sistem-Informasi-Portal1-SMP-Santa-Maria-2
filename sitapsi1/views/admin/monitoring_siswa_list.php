@@ -20,7 +20,7 @@ $semester_berjalan = $tahun_aktif['semester_aktif'];
 // Query siswa dengan pengecekan total poin TAHUNAN dan poin SEMESTER BERJALAN
 $siswa_list = fetchAll("
     SELECT 
-        s.no_induk, s.nama_siswa, s.jenis_kelamin,
+        s.no_induk, s.nama_siswa, s.jenis_kelamin, s.status_aktif,
         a.id_anggota, a.poin_kelakuan, a.poin_kerajinan, a.poin_kerapian, a.total_poin_umum,
         a.status_sp_terakhir, a.status_sp_kelakuan, a.status_sp_kerajinan, a.status_sp_kerapian,
         (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
@@ -33,8 +33,8 @@ $siswa_list = fetchAll("
          WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun AND h.semester = :semester) as total_semester
     FROM tb_anggota_kelas a
     JOIN tb_siswa s ON a.no_induk = s.no_induk
-    WHERE a.id_kelas = :id_kelas AND a.id_tahun = :id_tahun AND s.status_aktif = 'Aktif'
-    ORDER BY s.nama_siswa
+    WHERE a.id_kelas = :id_kelas AND a.id_tahun = :id_tahun
+    ORDER BY CASE WHEN s.status_aktif = 'Aktif' THEN 1 ELSE 2 END ASC, s.nama_siswa ASC
 ", ['id_kelas' => $id_kelas, 'id_tahun' => $tahun_aktif['id_tahun'], 'semester' => $semester_berjalan]);
 ?>
 <!DOCTYPE html>
@@ -91,7 +91,11 @@ $siswa_list = fetchAll("
                 <a href="detail_siswa.php?id=<?= $siswa['id_anggota'] ?>" 
                    class="block bg-white rounded-xl shadow-sm border <?= $is_bersih ? 'border-amber-400' : 'border-[#E2E8F0]' ?> hover:shadow-lg transition-all transform hover:-translate-y-1 overflow-hidden relative group">
                     
-                    <?php if ($is_kandidat_sertifikat): ?>
+                    <?php if ($siswa['status_aktif'] !== 'Aktif'): ?>
+                    <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-bl-xl shadow-sm z-10 flex items-center uppercase tracking-wider">
+                        <?= htmlspecialchars($siswa['status_aktif']) ?>
+                    </div>
+                    <?php elseif ($is_kandidat_sertifikat): ?>
                     <div class="absolute top-0 right-0 bg-amber-400 text-amber-900 text-[10px] font-extrabold px-3 py-1 rounded-bl-xl shadow-sm z-10 flex items-center">
                         🏆 Kandidat Sertifikat
                     </div>
@@ -101,7 +105,7 @@ $siswa_list = fetchAll("
                     </div>
                     <?php endif; ?>
 
-                    <div class="p-5 flex items-center space-x-4 border-b border-[#E2E8F0] bg-slate-50/50 mt-4">
+                    <div class="p-5 flex items-center space-x-4 border-b border-[#E2E8F0] bg-slate-50/50 mt-4 <?= $siswa['status_aktif'] !== 'Aktif' ? 'opacity-60' : '' ?>">
                         <div class="w-14 h-14 bg-[#000080] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 text-white font-extrabold text-xl shadow-sm <?= $is_kandidat_sertifikat ? 'ring-2 ring-amber-400 ring-offset-2' : ($is_kandidat_semester ? 'ring-2 ring-emerald-400 ring-offset-2' : '') ?>">
                             <?= strtoupper(substr($siswa['nama_siswa'], 0, 1)) ?>
                         </div>
@@ -111,7 +115,7 @@ $siswa_list = fetchAll("
                         </div>
                     </div>
 
-                    <div class="p-5">
+                    <div class="p-5 <?= $siswa['status_aktif'] !== 'Aktif' ? 'opacity-60 grayscale' : '' ?>">
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             <div class="text-center bg-slate-50 border border-[#E2E8F0] rounded-lg p-2">
                                 <p class="text-[9px] text-slate-400 font-bold mb-1 uppercase">Kelakuan</p>
