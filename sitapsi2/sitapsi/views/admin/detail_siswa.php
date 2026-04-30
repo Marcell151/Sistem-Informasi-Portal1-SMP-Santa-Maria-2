@@ -89,6 +89,51 @@ $poin_genap = fetchOne("
     WHERE h.id_anggota = :id AND h.id_tahun = :id_tahun AND h.semester = 'Genap'
 ", ['id' => $id_anggota, 'id_tahun' => $tahun_aktif['id_tahun']]);
 
+// [AUTO-HEALING] Sinkronisasi Data Master vs Detail Transaksi
+// Jika ada admin/developer yang mengubah data manual di database, poin master bisa tidak sinkron.
+// Kita hitung ulang secara real-time dan update tb_anggota_kelas jika ada perbedaan.
+$real_kelakuan = $poin_ganjil['kelakuan'] + $poin_genap['kelakuan'];
+$real_kerajinan = $poin_ganjil['kerajinan'] + $poin_genap['kerajinan'];
+$real_kerapian = $poin_ganjil['kerapian'] + $poin_genap['kerapian'];
+$real_total = $real_kelakuan + $real_kerajinan + $real_kerapian;
+
+if (
+    $siswa['poin_kelakuan'] != $real_kelakuan ||
+    $siswa['poin_kerajinan'] != $real_kerajinan ||
+    $siswa['poin_kerapian'] != $real_kerapian ||
+    $siswa['total_poin_umum'] != $real_total
+) {
+    // Jalankan perbaikan otomatis
+    executeQuery("
+        UPDATE tb_anggota_kelas 
+        SET poin_kelakuan = :pkl, poin_kerajinan = :pkr, poin_kerapian = :pkp, total_poin_umum = :pt
+        WHERE id_anggota = :id
+    ", [
+        'pkl' => $real_kelakuan,
+        'pkr' => $real_kerajinan,
+        'pkp' => $real_kerapian,
+        'pt'  => $real_total,
+        'id'  => $id_anggota
+    ]);
+    
+    // Update variable array agar UI saat ini langsung menyesuaikan tanpa perlu direfresh
+    $siswa['poin_kelakuan'] = $real_kelakuan;
+    $siswa['poin_kerajinan'] = $real_kerajinan;
+    $siswa['poin_kerapian'] = $real_kerapian;
+    $siswa['total_poin_umum'] = $real_total;
+    
+    // Jika poin berubah drastis, kita cek ulang status SP nya (silently)
+    require_once '../../includes/sp_helper.php';
+    recalculateStatusSP($id_anggota);
+    
+    // Ambil ulang status SP terbaru
+    $new_sp = fetchOne("SELECT status_sp_terakhir, status_sp_kelakuan, status_sp_kerajinan, status_sp_kerapian FROM tb_anggota_kelas WHERE id_anggota = :id", ['id' => $id_anggota]);
+    $siswa['status_sp_terakhir'] = $new_sp['status_sp_terakhir'];
+    $siswa['status_sp_kelakuan'] = $new_sp['status_sp_kelakuan'];
+    $siswa['status_sp_kerajinan'] = $new_sp['status_sp_kerajinan'];
+    $siswa['status_sp_kerapian'] = $new_sp['status_sp_kerapian'];
+}
+
 // [BARU] Ambil Master Data Sanksi untuk dicocokkan nanti
 $ref_sanksi = fetchAll("SELECT kode_sanksi, deskripsi FROM tb_sanksi_ref");
 $map_sanksi = [];
