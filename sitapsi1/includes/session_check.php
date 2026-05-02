@@ -8,18 +8,19 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function checkLogin() {
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
-        // Redirect ke login
-        header('Location: ../../views/login.php');
+        // Redirect root
+        $current_path = $_SERVER['PHP_SELF'];
+        $redirect_path = (strpos($current_path, '/views/') !== false) ? "../../index.php" : "../index.php";
+        header('Location: ' . $redirect_path);
         exit;
     }
     
-    // Cek session timeout (2 jam)
-    $timeout = 2 * 60 * 60; // 2 jam dalam detik
-    
     if (isset($_SESSION['login_time']) && (time() - $_SESSION['login_time'] > $timeout)) {
-        // Session expired
         session_destroy();
-        header('Location: ../../views/login.php?timeout=1');
+        // Redirect expired
+        $current_path = $_SERVER['PHP_SELF'];
+        $redirect_path = (strpos($current_path, '/views/') !== false) ? "../../index.php" : "../index.php";
+        header('Location: ' . $redirect_path . '?timeout=1');
         exit;
     }
     
@@ -41,6 +42,13 @@ function checkRole($allowed_roles = []) {
 
 function requireAdmin() {
     checkRole(['Admin', 'AdminPusat', 'KepalaSekolah']);
+}
+
+/**
+ * Strict Access (Admin Only)
+ */
+function requireAdminStrict() {
+    checkRole(['Admin', 'AdminPusat']);
 }
 
 function requireGuru() {

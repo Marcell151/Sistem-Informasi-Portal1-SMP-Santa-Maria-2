@@ -1,9 +1,5 @@
 <?php
 /**
- * SITAPSI - Dashboard Admin (STANDALONE VERSION)
- * FIX LOGIKA: Menyesuaikan Aktivitas berdasarkan Semester Aktif
- * PENAMBAHAN: System Initialization Barrier di baris paling atas
- * REVISI UI: Hapus Grafik, Ganti Tabel Analitik & Tambah Metrik Reward
  */
 
 session_start();
@@ -13,9 +9,7 @@ require_once '../../includes/session_check.php';
 // Pastikan hanya Admin yang bisa mengakses halaman ini
 requireAdmin();
 
-// ===================================================================================
-// 1. SYSTEM INITIALIZATION BARRIER (Pengecekan Tahun Ajaran Kosong)
-// ===================================================================================
+// INITIALIZATION
 $tahun_aktif = fetchOne("
     SELECT id_tahun, nama_tahun, semester_aktif 
     FROM tb_tahun_ajaran 
@@ -33,9 +27,7 @@ if (!$tahun_aktif) {
 $id_tahun = $tahun_aktif['id_tahun'];
 $hari_ini = date('Y-m-d');
 
-// =========================================================================
-// 2. QUERY METRIK UTAMA (TOP CARDS)
-// =========================================================================
+// QUERY METRIK
 
 // Statistik Umum (Total Siswa, Siswa SP, dan Kandidat Reward / Poin 0)
 $stats = fetchOne("
@@ -61,9 +53,7 @@ $stats_sp = fetchOne("
     WHERE id_tahun = :id_tahun
 ", ['id_tahun' => $id_tahun]);
 
-// =========================================================================
-// 3. QUERY ANALITIK CEPAT (TABEL TOP 5 & LOG)
-// =========================================================================
+// QUERY ANALITIK
 
 // Analitik 1: Top 5 siswa poin tertinggi
 $top_siswa = fetchAll("
@@ -127,9 +117,7 @@ $sp_stats_exec = fetchOne("
     WHERE ak.id_tahun = ?
 ", [$id_tahun]);
 
-// =========================================================================
-// 4. QUERY ANALITIK KHUSUS KEPALA SEKOLAH (EXECUTIVE VIEW)
-// =========================================================================
+// KHUSUS KEPSEK
 if (isKepsek()) {
     // Analitik 4: Distribusi Pelanggaran per Kategori (Moral vs Kerajinan vs Kerapian)
     $cat_dist = fetchAll("
@@ -167,11 +155,8 @@ if (isKepsek()) {
     ", [$id_tahun]);
 
 } else {
-    // =========================================================================
-    // 5. QUERY AUDIT KHUSUS ADMIN TATIB (OPERATIONAL VIEW)
-    // =========================================================================
+    // ADMIN TATIB
     
-    // Antrean Audit: Kasus yang masuk dalam 24 jam terakhir (menggunakan tanggal dan waktu)
     $audit_queue = fetchOne("
         SELECT COUNT(*) as total 
         FROM tb_pelanggaran_header 
@@ -187,7 +172,7 @@ if (isKepsek()) {
         FROM tb_anggota_kelas ak
         JOIN tb_siswa s ON ak.no_induk = s.no_induk
         JOIN tb_kelas k ON ak.id_kelas = k.id_kelas
-        WHERE ak.id_tahun = ?
+        WHERE ak.id_tahun = ? AND s.status_aktif = 'Aktif'
         AND (
             (ak.poin_kelakuan BETWEEN 200 AND 249 AND ak.status_sp_kelakuan = 'Aman') OR
             (ak.poin_kelakuan BETWEEN 700 AND 749 AND ak.status_sp_kelakuan = 'SP1') OR
@@ -225,6 +210,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6";
 
     <div class="flex-1 overflow-auto lg:ml-64">
         
+        <!-- HEADER -->
         <div class="bg-white border-b border-[#E2E8F0] px-6 py-4 sticky top-0 z-30 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Dashboard Kedisiplinan</h1>
@@ -241,6 +227,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6";
             </div>
         </div>
 
+        <!-- CONTENT -->
         <div class="p-6 space-y-6 max-w-7xl mx-auto">
 
             <?php if ($success): ?>
@@ -606,6 +593,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm p-6";
                 </div>
             </div>
 
+            <!-- JS / SCRIPTS -->
             <?php if (!isKepsek()): ?>
             <!-- VIEW KHUSUS ADMIN (RECENT LOGS WITH AUDIT ACTION) -->
             <div class="bg-white border border-[#E2E8F0] rounded-xl shadow-sm overflow-hidden">

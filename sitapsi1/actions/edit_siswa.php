@@ -4,7 +4,7 @@ session_start();
 require_once '../config/database.php';
 require_once '../includes/session_check.php';
 
-requireAdmin();
+requireAdminStrict();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../views/admin/data_siswa.php');

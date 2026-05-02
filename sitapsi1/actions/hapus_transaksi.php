@@ -6,7 +6,7 @@ require_once '../config/database.php';
 require_once '../includes/session_check.php';
 require_once '../includes/sp_helper.php';
 
-requireAdmin();
+requireAdminStrict();
 
 $id_transaksi = $_GET['id'] ?? null;
 $redirect = $_GET['redirect'] ?? 'audit';

@@ -3,7 +3,7 @@ session_start();
 require_once '../config/database.php';
 require_once '../includes/session_check.php';
 
-requireAdmin();
+requireAdminStrict();
 
 $id = $_GET['id'] ?? null;
 $status = $_GET['status'] ?? null;
@@ -29,3 +29,4 @@ try {
 header('Location: ../views/admin/manajemen_aturan.php');
 exit;
 ?>
+

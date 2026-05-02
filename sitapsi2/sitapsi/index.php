@@ -12,8 +12,8 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
         header('Location: views/guru/input_pelanggaran.php');
     }
 } else {
-    // Redirect ke halaman login
-    header('Location: views/login.php');
+    // Redirect ke halaman login portal utama
+    header('Location: ../index.php');
 }
 
 exit;

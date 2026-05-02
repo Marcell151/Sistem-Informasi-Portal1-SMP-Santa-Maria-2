@@ -9,14 +9,19 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function checkLogin() {
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['role'])) {
-        header('Location: ../../index.php');
+        // Deteksi kedalaman folder untuk redirect ke index portal utama (sitapsi2 root)
+        $current_path = $_SERVER['PHP_SELF'];
+        $redirect_path = (strpos($current_path, '/views/') !== false || strpos($current_path, '/actions/') !== false) ? "../../index.php" : "../index.php";
+        header('Location: ' . $redirect_path);
         exit;
     }
     
     $timeout = 2 * 60 * 60; 
     if (isset($_SESSION['login_time']) && (time() - $_SESSION['login_time'] > $timeout)) {
         session_destroy();
-        header('Location: ../../index.php?timeout=1');
+        $current_path = $_SERVER['PHP_SELF'];
+        $redirect_path = (strpos($current_path, '/views/') !== false || strpos($current_path, '/actions/') !== false) ? "../../index.php" : "../index.php";
+        header('Location: ' . $redirect_path . '?timeout=1');
         exit;
     }
     $_SESSION['login_time'] = time();

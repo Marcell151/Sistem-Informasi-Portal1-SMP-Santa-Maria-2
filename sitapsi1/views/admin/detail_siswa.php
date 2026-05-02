@@ -18,7 +18,7 @@ if (!$id_anggota) {
 $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
 $filter_semester = $_GET['semester'] ?? $tahun_aktif['semester_aktif'];
 
-// Query siswa dengan SP per kategori (DISESUAIKAN NO INDUK)
+// DATA SISWA
 $siswa = fetchOne("
     SELECT 
         s.*,
@@ -45,7 +45,7 @@ if (!$siswa) {
     exit;
 }
 
-// LOGIKA BARU: Cek histori 1 tahun dan semester berjalan
+// HISTORI POIN
 $cek_history = fetchOne("
     SELECT 
         COALESCE(SUM(d.poin_saat_itu), 0) as total_tahunan,
@@ -85,9 +85,7 @@ $poin_genap = fetchOne("
     WHERE h.id_anggota = :id AND h.id_tahun = :id_tahun AND h.semester = 'Genap'
 ", ['id' => $id_anggota, 'id_tahun' => $tahun_aktif['id_tahun']]);
 
-// [AUTO-HEALING] Sinkronisasi Data Master vs Detail Transaksi
-// Jika ada admin/developer yang mengubah data manual di database, poin master bisa tidak sinkron.
-// Kita hitung ulang secara real-time dan update tb_anggota_kelas jika ada perbedaan.
+// SINKRONISASI POIN
 $real_kelakuan = $poin_ganjil['kelakuan'] + $poin_genap['kelakuan'];
 $real_kerajinan = $poin_ganjil['kerajinan'] + $poin_genap['kerajinan'];
 $real_kerapian = $poin_ganjil['kerapian'] + $poin_genap['kerapian'];
@@ -130,14 +128,14 @@ if (
     $siswa['status_sp_kerapian'] = $new_sp['status_sp_kerapian'];
 }
 
-// [BARU] Ambil Master Data Sanksi untuk dicocokkan nanti
+// DATA SANKSI
 $ref_sanksi = fetchAll("SELECT kode_sanksi, deskripsi FROM tb_sanksi_ref");
 $map_sanksi = [];
 foreach($ref_sanksi as $rs) {
     $map_sanksi[$rs['kode_sanksi']] = $rs['deskripsi'];
 }
 
-// Helper query pelanggaran
+// HELPER QUERY
 function getPelanggaranByKategori($id_anggota, $id_kategori, $id_tahun, $filter_semester) {
     global $pdo;
     $sql = "
@@ -170,7 +168,7 @@ $success = $_SESSION['success_message'] ?? '';
 $error = $_SESSION['error_message'] ?? '';
 unset($_SESSION['success_message'], $_SESSION['error_message']);
 
-// --- UI CONFIG VARIABLES ---
+// UI CONFIG
 $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
 ?>
 <!DOCTYPE html>
@@ -185,10 +183,12 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
 
 <div class="flex h-screen overflow-hidden">
     
+    <!-- SIDEBAR -->
     <?php include '../../includes/sidebar_admin.php'; ?>
 
     <div class="flex-1 overflow-auto lg:ml-64">
         
+        <!-- HEADER -->
         <div class="bg-white border-b border-[#E2E8F0] px-6 py-4 sticky top-0 z-30 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <a href="monitoring_siswa_list.php?kelas=<?= $siswa['id_kelas'] ?>" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
@@ -206,6 +206,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
             </a>
         </div>
 
+        <!-- CONTENT -->
         <div class="p-6 space-y-6 max-w-6xl mx-auto">
             
             <?php if ($success): ?>
@@ -459,6 +460,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                                     class="p-1.5 bg-white border border-[#E2E8F0] text-blue-600 rounded-md hover:bg-blue-50 transition-colors shadow-sm" title="Lihat Bukti/Detail">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                             </button>
+                                            <?php if (!isKepsek()): ?>
                                             <button onclick="editPelanggaran(<?= $p['id_transaksi'] ?>)" 
                                                     class="p-1.5 bg-white border border-[#E2E8F0] text-amber-600 rounded-md hover:bg-amber-50 transition-colors shadow-sm" title="Edit">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -467,6 +469,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                                     class="p-1.5 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition-colors shadow-sm" title="Hapus">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                             </button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -549,6 +552,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
     </div>
 </div>
 
+<!-- JAVASCRIPT -->
 <script>
 function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));

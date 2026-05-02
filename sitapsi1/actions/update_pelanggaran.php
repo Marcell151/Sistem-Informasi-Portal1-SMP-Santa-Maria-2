@@ -4,7 +4,7 @@ require_once '../config/database.php';
 require_once '../includes/session_check.php';
 require_once '../includes/sp_helper.php'; // TAMBAH INI
 
-requireAdmin();
+requireAdminStrict();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../views/admin/audit_harian.php');
