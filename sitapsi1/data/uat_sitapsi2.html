@@ -40,7 +40,7 @@
             </div>
         </div>
         <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
-            <span class="bold" style="font-size: 1.1em; color: #2c3e50;">Total Skenario: 110 | Berhasil: 110 | Gagal: 0 | Progress: 100%</span>
+            <span class="bold" style="font-size: 1.1em; color: #2c3e50;">Total Skenario: 50 | Berhasil: 50 | Gagal: 0 | Progress: 100%</span>
         </div>
         <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
             Catatan Summary: Seluruh modul fungsional dalam sistem SITAPSI telah melalui proses verifikasi menyeluruh sesuai rancangan antarmuka. Hasil pengujian menunjukkan sistem mampu beroperasi sesuai logika bisnis sekolah tanpa kendala teknis pada data riil.
@@ -60,7 +60,8 @@
             <tr><td class="no-col">4</td><td>Apakah sistem mengizinkan login Guru menggunakan PIN 6 digit yang sesuai?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">5</td><td>Apakah sistem menolak login jika PIN guru yang dimasukkan salah?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">6</td><td>Apakah sistem mengizinkan login Wali Murid menggunakan NIK dan Password yang valid?</td><td class="hasil-col status-success">Berhasil</td></tr>
-            <tr><td class="no-col">7</td><td>Apakah fitur logout mengakhiri sesi pengguna dan mengarahkan kembali ke halaman login utama?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">7</td><td>Apakah sistem mencegah akses langsung ke URL halaman internal tanpa proses login?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">8</td><td>Apakah fitur logout mengakhiri sesi pengguna dan mengarahkan kembali ke halaman login utama?</td><td class="hasil-col status-success">Berhasil</td></tr>
         </tbody>
     </table>
 
@@ -75,9 +76,12 @@
             <tr><td class="no-col">2</td><td>Apakah fitur edit data siswa berhasil memperbarui informasi alamat dan kelas?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">3</td><td>Apakah fitur hapus data siswa (Nonaktifkan) berhasil menyembunyikan siswa dari daftar aktif?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">4</td><td>Apakah Admin Pusat dapat mengunggah file Excel untuk menambah data siswa secara masal?</td><td class="hasil-col status-success">Berhasil</td></tr>
-            <tr><td class="no-col">5</td><td>Apakah pendaftaran Guru baru berhasil menyimpan PIN akses keamanan?</td><td class="hasil-col status-success">Berhasil</td></tr>
-            <tr><td class="no-col">6</td><td>Apakah sistem berhasil menghubungkan akun Wali Murid dengan NIK siswa yang benar?</td><td class="hasil-col status-success">Berhasil</td></tr>
-            <tr><td class="no-col">7</td><td>Apakah satu akun Wali Murid dapat terhubung ke lebih dari satu siswa (Saudara Kandung)?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">5</td><td>Apakah fitur edit data guru berhasil memperbarui PIN dan informasi jabatan?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">6</td><td>Apakah fitur hapus data guru (Nonaktifkan) berhasil membatasi guru tersebut dari menu login?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">7</td><td>Apakah fitur edit data Wali Murid berhasil memperbarui NIK dan nomor kontak?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">8</td><td>Apakah fitur hapus data Wali Murid berhasil memutuskan relasi akses ke Portal Anak?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">9</td><td>Apakah sistem berhasil menghubungkan akun Wali Murid dengan NIK siswa yang benar?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">10</td><td>Apakah satu akun Wali Murid dapat terhubung ke lebih dari satu siswa (Saudara Kandung)?</td><td class="hasil-col status-success">Berhasil</td></tr>
         </tbody>
     </table>
 
@@ -92,6 +96,7 @@
             <tr><td class="no-col">2</td><td>Apakah fitur "Tutup Tahun Ajaran" berhasil melakukan reset akumulasi poin siswa secara otomatis?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">3</td><td>Apakah fitur "Proses Kelulusan" berhasil mengubah status siswa kelas akhir menjadi 'Lulus'?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">4</td><td>Apakah data dari tahun ajaran lama tetap dapat diakses melalui menu Arsip Global?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">5</td><td>Apakah sistem mencegah penghapusan Tahun Ajaran yang sedang berstatus 'Aktif' untuk menjaga integritas data?</td><td class="hasil-col status-success">Berhasil</td></tr>
         </tbody>
     </table>
 
@@ -120,6 +125,7 @@
             <tr><td class="no-col">2</td><td>Apakah fitur "Live Search" memudahkan guru dalam menemukan nama siswa saat input?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">3</td><td>Apakah sistem berhasil menyimpan unggahan foto bukti pelanggaran?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">4</td><td>Apakah rekomendasi sanksi tindakan muncul otomatis saat poin pelanggaran terakumulasi?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">5</td><td>Apakah sistem menolak penyimpanan jika ada field wajib (Aturan/Siswa) yang belum diisi?</td><td class="hasil-col status-success">Berhasil</td></tr>
         </tbody>
     </table>
 
@@ -162,6 +168,7 @@
             <tr><td class="no-col">2</td><td>Apakah Laporan Rapor Karakter berhasil memunculkan predikat nilai huruf (A/B/C)?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">3</td><td>Apakah Laporan Rekapitulasi Kelas berhasil menyajikan matriks poin secara rapi?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">4</td><td>Apakah seluruh dokumen cetak memuat Kop Surat resmi sekolah secara dinamis?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">5</td><td>Apakah file PDF yang dihasilkan dapat diunduh dan dibuka dengan sempurna di perangkat lokal?</td><td class="hasil-col status-success">Berhasil</td></tr>
         </tbody>
     </table>
 
@@ -176,6 +183,7 @@
             <tr><td class="no-col">2</td><td>Apakah fitur "Radar Peringatan Dini" berhasil menyoroti siswa dengan akumulasi poin tinggi?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">3</td><td>Apakah Kepala Sekolah memiliki akses "View Only" ke seluruh dashboard strategis?</td><td class="hasil-col status-success">Berhasil</td></tr>
             <tr><td class="no-col">4</td><td>Apakah data pada dashboard diperbarui secara otomatis tanpa perlu refresh manual?</td><td class="hasil-col status-success">Berhasil</td></tr>
+            <tr><td class="no-col">5</td><td>Apakah ringkasan statistik (Total Pelanggaran) sesuai dengan jumlah data di database?</td><td class="hasil-col status-success">Berhasil</td></tr>
         </tbody>
     </table>
 

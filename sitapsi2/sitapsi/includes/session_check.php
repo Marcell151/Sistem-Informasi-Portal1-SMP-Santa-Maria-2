@@ -16,6 +16,7 @@ function checkLogin() {
         exit;
     }
     
+    $timeout = 3600; // 1 jam
     if (isset($_SESSION['login_time']) && (time() - $_SESSION['login_time'] > $timeout)) {
         session_destroy();
         // Redirect expired
