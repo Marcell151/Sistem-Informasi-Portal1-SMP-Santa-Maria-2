@@ -23,7 +23,7 @@ $tahun_aktif = fetchOne("
 $kelas_list = fetchAll("SELECT id_kelas, nama_kelas FROM tb_kelas ORDER BY tingkat, nama_kelas");
 
 // [PENYESUAIAN] AMBIL DATA ORANG TUA UNTUK DROPDOWN (Ganti NIK jadi Username & Nama Wali)
-$ortu_list = fetchAll("SELECT id_ortu, username, nama_wali, nama_ayah, nama_ibu FROM tb_orang_tua ORDER BY nama_wali ASC");
+$ortu_list = fetchAll("SELECT id_ortu, username, nama_wali, nama_ayah, nama_ibu, no_hp_ortu FROM tb_orang_tua ORDER BY nama_wali ASC");
 
 // [PENYESUAIAN] Tambah JOIN ke tb_orang_tua untuk memanggil Username & Nama Wali ortu
 $sql = "
@@ -487,10 +487,35 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
 
 <script>
 // Init TomSelect
+const ortuDataList = <?= json_encode($ortu_list) ?>;
+const ortuMap = {};
+ortuDataList.forEach(o => { ortuMap[o.id_ortu] = o; });
+
 let tsTambah, tsEdit;
 document.addEventListener("DOMContentLoaded", function() {
-    tsTambah = new TomSelect("#select-ortu-tambah", { create: false, sortField: { field: "text", direction: "asc" } });
-    tsEdit = new TomSelect("#select-ortu-edit", { create: false, sortField: { field: "text", direction: "asc" } });
+    tsTambah = new TomSelect("#select-ortu-tambah", { 
+        create: false, 
+        sortField: { field: "text", direction: "asc" },
+        onChange: function(value) {
+            if(value && ortuMap[value]) {
+                document.querySelector('form#formTambah input[name="nama_ayah"]').value = ortuMap[value].nama_ayah || '';
+                document.querySelector('form#formTambah input[name="nama_ibu"]').value = ortuMap[value].nama_ibu || '';
+                document.querySelector('form#formTambah input[name="no_hp_ortu"]').value = ortuMap[value].no_hp_ortu || '';
+            }
+        }
+    });
+    
+    tsEdit = new TomSelect("#select-ortu-edit", { 
+        create: false, 
+        sortField: { field: "text", direction: "asc" },
+        onChange: function(value) {
+            if(value && ortuMap[value]) {
+                document.querySelector('form#formEdit input[name="nama_ayah"]').value = ortuMap[value].nama_ayah || '';
+                document.querySelector('form#formEdit input[name="nama_ibu"]').value = ortuMap[value].nama_ibu || '';
+                document.querySelector('form#formEdit input[name="no_hp_ortu"]').value = ortuMap[value].no_hp_ortu || '';
+            }
+        }
+    });
 });
 
 // Modal Logic Toggle
@@ -515,12 +540,12 @@ function editSiswa(data) {
     document.getElementById('edit-no-hp-ortu').value = data.no_hp_ortu;
     document.getElementById('edit-id-kelas').value = data.id_kelas || '';
     
-    // Set Nilai TomSelect Ortu
+    // Set Nilai TomSelect Ortu (Silent mode true agar tidak memicu onChange yang mereplace data inputan)
     if(tsEdit) {
         if(data.id_ortu) {
-            tsEdit.setValue(data.id_ortu);
+            tsEdit.setValue(data.id_ortu, true);
         } else {
-            tsEdit.clear();
+            tsEdit.clear(true);
         }
     }
     

@@ -10,13 +10,18 @@ if (!isset($_SESSION['role'])) {
 }
 
 $id_anggota = $_GET['id'] ?? null;
+$id_tahun = $_GET['tahun'] ?? null;
 
 if (!$id_anggota) {
     die("ID Siswa tidak dipilih.");
 }
 
-// 1. Ambil tahun ajaran aktif
-$tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
+// 1. Ambil tahun ajaran
+if ($id_tahun) {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE id_tahun = :id", ['id' => $id_tahun]);
+} else {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
+}
 
 // 2. Ambil data siswa & LAKUKAN VALIDASI KEPEMILIKAN JIKA YANG LOGIN ADALAH ORTU
 if ($_SESSION['role'] === 'Ortu') {

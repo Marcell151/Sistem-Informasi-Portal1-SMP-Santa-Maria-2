@@ -9,9 +9,20 @@ if (!isset($_SESSION['user_id']) && !isset($_SESSION['role'])) {
 }
 
 $id_kelas = $_GET['kelas'] ?? null;
+$id_tahun = $_GET['tahun'] ?? null;
+$semester_aktif = $_GET['semester'] ?? null;
+
 if (!$id_kelas) die("Kelas tidak dipilih.");
 
-$tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
+if ($id_tahun) {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE id_tahun = :id", ['id' => $id_tahun]);
+} else {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
+}
+
+if (!$semester_aktif) {
+    $semester_aktif = $tahun_aktif['semester_aktif'];
+}
 
 $kelas_info = fetchOne("
     SELECT k.nama_kelas, g.nama_guru as wali_kelas 
@@ -23,13 +34,21 @@ $kelas_info = fetchOne("
 $siswa_kelas = fetchAll("
     SELECT 
         s.no_induk, s.jenis_kelamin, s.nama_siswa,
-        a.poin_kelakuan, a.poin_kerajinan, a.poin_kerapian
+        a.poin_kelakuan, a.poin_kerajinan, a.poin_kerapian,
+        (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
+         FROM tb_pelanggaran_header h 
+         JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
+         WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun AND h.semester = :semester) as total_semester
     FROM tb_siswa s
     JOIN tb_anggota_kelas a ON s.no_induk = a.no_induk
     WHERE s.status_aktif = 'Aktif' 
     AND a.id_tahun = :id_tahun AND a.id_kelas = :id_kelas
     ORDER BY s.nama_siswa
-", ['id_tahun' => $tahun_aktif['id_tahun'], 'id_kelas' => $id_kelas]);
+", [
+    'id_tahun' => $tahun_aktif['id_tahun'], 
+    'id_kelas' => $id_kelas,
+    'semester' => $semester_aktif
+]);
 
 $btn_primary = "px-5 py-2.5 bg-[#000080] text-white text-sm font-semibold rounded-lg shadow-md hover:bg-blue-900 transition-all flex items-center justify-center cursor-pointer";
 $btn_success = "px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition-all flex items-center justify-center cursor-pointer";
@@ -95,7 +114,7 @@ $btn_outline = "px-5 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
                     <tr><td class="pr-2">WALI KELAS</td><td>: <?= htmlspecialchars($kelas_info['wali_kelas'] ?? '(Belum Ada Wali Kelas)') ?></td></tr>
                 </table>
             </div>
-            <div class="pb-1">SEMESTER : <?= mb_strtoupper($tahun_aktif['semester_aktif']) ?></div>
+            <div class="pb-1">SEMESTER : <?= mb_strtoupper($semester_aktif) ?></div>
         </div>
 
         <table class="table-rekap">

@@ -43,6 +43,13 @@ function requireAdminPusat() {
 }
 
 /**
+ * Strict Access (Admin Only) - Mencegah Kepsek akses file CRUD
+ */
+function requireAdminStrict() {
+    checkRole(['Admin', 'AdminPusat']);
+}
+
+/**
  * DISESUAIKAN: Admin Utama & Admin Tatib boleh akses modul Tatib
  */
 function requireAdmin() {

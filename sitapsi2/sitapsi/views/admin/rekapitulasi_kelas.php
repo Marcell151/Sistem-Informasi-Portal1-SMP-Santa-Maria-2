@@ -8,13 +8,24 @@ require_once '../../includes/session_check.php';
 requireAdmin();
 
 $id_kelas = $_GET['kelas'] ?? null;
+$is_arsip = isset($_GET['arsip']) && $_GET['arsip'] == 1;
+$filter_tahun = $_GET['tahun'] ?? null;
+$filter_semester = $_GET['semester'] ?? null;
 
-$tahun_aktif = fetchOne("
-    SELECT id_tahun, nama_tahun, semester_aktif 
-    FROM tb_tahun_ajaran 
-    WHERE status = 'Aktif' 
-    LIMIT 1
-");
+if ($filter_tahun) {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE id_tahun = :id", ['id' => $filter_tahun]);
+} else {
+    $tahun_aktif = fetchOne("
+        SELECT id_tahun, nama_tahun, semester_aktif 
+        FROM tb_tahun_ajaran 
+        WHERE status = 'Aktif' 
+        LIMIT 1
+    ");
+}
+
+if (!$filter_semester) {
+    $filter_semester = $tahun_aktif['semester_aktif'];
+}
 
 $kelas_list = fetchAll("SELECT * FROM tb_kelas ORDER BY tingkat, nama_kelas");
 
@@ -24,7 +35,7 @@ if (!$id_kelas && !empty($kelas_list)) {
 
 if ($id_kelas) {
     $kelas_info = fetchOne("SELECT * FROM tb_kelas WHERE id_kelas = :id", ['id' => $id_kelas]);
-    $semester_berjalan = $tahun_aktif['semester_aktif'];
+    $semester_berjalan = $filter_semester;
     
     // LOGIKA BARU: Tambah sub-query total_tahunan & total_semester
     $siswa_kelas = fetchAll("
@@ -75,23 +86,42 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
 
 <div class="flex h-screen overflow-hidden">
     
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php 
+        if ($is_arsip) {
+            $is_cross_module = true;
+            include '../../../core_admin/includes/sidebar_core.php'; 
+        } else {
+            include '../../includes/sidebar_admin.php'; 
+        }
+    ?>
 
     <div class="flex-1 overflow-auto lg:ml-64">
         
         <div class="bg-white border-b border-[#E2E8F0] px-6 pl-16 lg:pl-6 py-4 sticky top-0 z-30 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Rekapitulasi Kelas</h1>
-                <p class="text-sm font-medium text-slate-500">Matriks poin dan SP per kategori</p>
+            <div class="flex items-center space-x-4">
+                <?php if ($is_arsip): ?>
+                <a href="../../../core_admin/views/arsip_tahun.php?tahun=<?= $filter_tahun ?>&tab=tatib" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </a>
+                <?php endif; ?>
+                <div>
+                    <div class="flex items-center space-x-3">
+                        <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Rekapitulasi Kelas</h1>
+                        <?php if ($is_arsip): ?>
+                            <span class="px-2 py-0.5 bg-slate-100 border border-slate-300 text-slate-600 text-[10px] font-bold rounded uppercase tracking-widest">Mode Arsip</span>
+                        <?php endif; ?>
+                    </div>
+                    <p class="text-sm font-medium text-slate-500">Matriks poin dan SP per kategori</p>
+                </div>
             </div>
             <?php if ($id_kelas): ?>
             <div class="flex flex-wrap items-center gap-3">
-                <a href="../../actions/cetak_rekap_kelas.php?kelas=<?= $id_kelas ?>" target="_blank"
+                <a href="../../actions/cetak_rekap_kelas.php?kelas=<?= $id_kelas ?>&semester=<?= $filter_semester ?><?= $is_arsip ? '&tahun=' . $filter_tahun : '' ?>" target="_blank"
                    class="bg-white border border-[#E2E8F0] hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center shadow-sm transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2-2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     <span class="hidden sm:inline">Preview & Download PDF</span>
                 </a>
-                <a href="../../actions/export_rekap_admin.php?kelas=<?= $id_kelas ?>" target="_blank"
+                <a href="../../actions/export_rekap_admin.php?kelas=<?= $id_kelas ?>&semester=<?= $filter_semester ?><?= $is_arsip ? '&tahun=' . $filter_tahun : '' ?>" target="_blank"
                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center shadow-sm transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
                     Export Excel
@@ -103,8 +133,12 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
         <div class="p-6 space-y-6 max-w-full mx-auto">
 
             <div class="<?= $card_class ?> p-5 bg-slate-50/50">
-                <form method="GET" class="flex flex-col sm:flex-row items-start sm:items-end gap-4 max-w-md">
-                    <div class="w-full">
+                <form method="GET" class="flex flex-col sm:flex-row items-start sm:items-end gap-4 max-w-2xl">
+                    <?php if ($is_arsip): ?>
+                        <input type="hidden" name="arsip" value="1">
+                        <input type="hidden" name="tahun" value="<?= $filter_tahun ?>">
+                    <?php endif; ?>
+                    <div class="flex-1 w-full">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Pilih Kelas</label>
                         <select name="kelas" onchange="this.form.submit()" 
                                 class="w-full px-4 py-2.5 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#000080]/20 focus:border-[#000080] text-sm font-bold text-slate-700 bg-white">
@@ -113,6 +147,14 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                 <?= htmlspecialchars($k['nama_kelas']) ?>
                             </option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="w-full sm:w-48">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Pilih Semester</label>
+                        <select name="semester" onchange="this.form.submit()" 
+                                class="w-full px-4 py-2.5 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#000080]/20 focus:border-[#000080] text-sm font-bold text-slate-700 bg-white">
+                            <option value="Ganjil" <?= $filter_semester === 'Ganjil' ? 'selected' : '' ?>>Ganjil</option>
+                            <option value="Genap" <?= $filter_semester === 'Genap' ? 'selected' : '' ?>>Genap</option>
                         </select>
                     </div>
                 </form>
@@ -125,7 +167,7 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
                         <h2 class="text-2xl font-extrabold mb-1">Rekapitulasi Kelas <?= htmlspecialchars($kelas_info['nama_kelas']) ?></h2>
-                        <p class="text-blue-200 font-medium text-sm">Tahun Ajaran: <?= $tahun_aktif['nama_tahun'] ?></p>
+                        <p class="text-blue-200 font-medium text-sm">Tahun Ajaran: <?= $tahun_aktif['nama_tahun'] ?> • Semester <?= $filter_semester ?></p>
                     </div>
                     <div class="text-right">
                         <p class="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">Total Siswa</p>
@@ -174,9 +216,9 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                             </tr>
                             <?php else: ?>
                             <?php foreach ($siswa_kelas as $idx => $siswa): 
-                                // LOGIKA BARU LENCANA REWARD
-                                $is_kandidat_sertifikat = ($siswa['total_tahunan'] == 0); // 0 poin full 1 tahun
-                                $is_kandidat_semester = (!$is_kandidat_sertifikat && $siswa['total_semester'] == 0); // 0 poin di semester ini saja
+                                // LOGIKA BARU LENCANA REWARD (Disembunyikan saat Mode Arsip)
+                                $is_kandidat_sertifikat = (!$is_arsip && $siswa['total_tahunan'] == 0); // 0 poin full 1 tahun
+                                $is_kandidat_semester = (!$is_arsip && !$is_kandidat_sertifikat && $siswa['total_semester'] == 0); // 0 poin di semester ini saja
                                 $is_bersih = ($is_kandidat_sertifikat || $is_kandidat_semester);
                             ?>
                             <tr class="hover:bg-slate-50 transition-colors group <?= $is_bersih ? 'bg-amber-50/30' : '' ?>">

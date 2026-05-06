@@ -111,73 +111,9 @@ $total_sp = fetchOne("
 ", ['id' => $id_tahun]);
 
 
-// --- PERSIAPAN FILTER PENCARIAN ---
-$filter_search   = $_GET['search'] ?? '';
-$filter_semester = $_GET['semester'] ?? 'all';
-$filter_kelas    = $_GET['kelas'] ?? 'all';
+// --- QUERY GRID KELAS ---
+$kelas_list = fetchAll("SELECT id_kelas, nama_kelas, tingkat FROM tb_kelas ORDER BY tingkat, nama_kelas");
 
-$kelas_list = fetchAll("SELECT id_kelas, nama_kelas FROM tb_kelas ORDER BY tingkat, nama_kelas");
-
-// --- QUERY REKAPITULASI SISWA (Filtered) ---
-$sql_rekap = "
-    SELECT 
-        a.id_anggota, s.no_induk, s.nama_siswa, k.nama_kelas,
-        a.status_sp_terakhir,
-        COUNT(DISTINCT h.id_transaksi) as jml_kejadian,
-        COALESCE(SUM(d.poin_saat_itu), 0) as total_poin
-    FROM tb_anggota_kelas a
-    JOIN tb_siswa s ON a.no_induk = s.no_induk
-    JOIN tb_kelas k ON a.id_kelas = k.id_kelas
-    JOIN tb_pelanggaran_header h ON a.id_anggota = h.id_anggota
-    LEFT JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi
-    WHERE h.id_tahun = :id_tahun
-";
-$params_rekap = ['id_tahun' => $id_tahun];
-
-if ($filter_semester !== 'all') {
-    $sql_rekap .= " AND h.semester = :semester";
-    $params_rekap['semester'] = $filter_semester;
-}
-if ($filter_kelas !== 'all') {
-    $sql_rekap .= " AND a.id_kelas = :kelas";
-    $params_rekap['kelas'] = $filter_kelas;
-}
-if (!empty($filter_search)) {
-    $sql_rekap .= " AND (s.nama_siswa LIKE :s1 OR s.no_induk LIKE :s2)";
-    $params_rekap['s1'] = "%$filter_search%";
-    $params_rekap['s2'] = "%$filter_search%";
-}
-
-$sql_rekap .= " GROUP BY a.id_anggota ORDER BY total_poin DESC LIMIT 100";
-$list_siswa_bermasalah = fetchAll($sql_rekap, $params_rekap);
-
-// --- PERSIAPAN DATA UNTUK MODAL DETAIL ---
-// Kita ambil semua detail transaksi untuk siswa-siswa yang tampil di layar
-$details_by_anggota = [];
-if (!empty($list_siswa_bermasalah)) {
-    $id_anggota_list = array_column($list_siswa_bermasalah, 'id_anggota');
-    $placeholders = implode(',', array_fill(0, count($id_anggota_list), '?'));
-    
-    $sql_details = "
-        SELECT h.id_anggota, h.tanggal, h.semester, d.poin_saat_itu, jp.nama_pelanggaran
-        FROM tb_pelanggaran_header h
-        JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi
-        JOIN tb_jenis_pelanggaran jp ON d.id_jenis = jp.id_jenis
-        WHERE h.id_tahun = ? AND h.id_anggota IN ($placeholders)
-    ";
-    
-// Siapkan parameter (ID Tahun + Array ID Anggota)
-    $params_details = array_merge([$id_tahun], $id_anggota_list);
-    
-    // MENGGUNAKAN FUNGSI fetchAll() BAWAAN SISTEM ANDA
-    $raw_details = fetchAll($sql_details, $params_details);
-
-    if ($raw_details) {
-        foreach($raw_details as $row) {
-            $details_by_anggota[$row['id_anggota']][] = $row;
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -234,88 +170,46 @@ if (!empty($list_siswa_bermasalah)) {
                 </div>
             </div>
 
-            <div class="<?= $card_class ?> p-4 bg-slate-50/50">
-                <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                    <input type="hidden" name="tahun" value="<?= $id_tahun ?>">
-                    <input type="hidden" name="tab" value="tatib">
-                    
-                    <div class="md:col-span-4">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Cari Nama/NIK</label>
-                        <input type="text" name="search" value="<?= htmlspecialchars($filter_search) ?>" placeholder="Masukkan nama..." class="<?= $input_class ?>">
-                    </div>
-                    <div class="md:col-span-3">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Semester</label>
-                        <select name="semester" class="<?= $input_class ?>">
-                            <option value="all">Semua Semester</option>
-                            <option value="Ganjil" <?= $filter_semester === 'Ganjil' ? 'selected' : '' ?>>Semester Ganjil</option>
-                            <option value="Genap" <?= $filter_semester === 'Genap' ? 'selected' : '' ?>>Semester Genap</option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-3">
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Kelas</label>
-                        <select name="kelas" class="<?= $input_class ?>">
-                            <option value="all">Semua Kelas</option>
-                            <?php foreach ($kelas_list as $k): ?>
-                            <option value="<?= $k['id_kelas'] ?>" <?= $filter_kelas == $k['id_kelas'] ? 'selected' : '' ?>><?= htmlspecialchars($k['nama_kelas']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="md:col-span-2 flex space-x-2">
-                        <button type="submit" class="<?= $btn_primary ?> flex-1">Filter</button>
-                        <a href="?tahun=<?= $id_tahun ?>&tab=tatib" class="px-3 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50" title="Reset">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                        </a>
-                    </div>
-                </form>
+            <div class="bg-[#000080] text-white rounded-xl shadow-md p-6 mb-6">
+                <h2 class="text-xl font-extrabold mb-1">Pilih Kelas</h2>
+                <p class="text-blue-200 text-sm">Klik kelas untuk melihat daftar siswa atau rekapitulasi poin.</p>
             </div>
 
-            <div class="<?= $card_class ?> overflow-hidden">
-                <div class="p-4 border-b border-[#E2E8F0] bg-white flex justify-between items-center">
-                    <span class="font-bold text-slate-800 text-sm">Rekam Jejak Siswa (Maks 100)</span>
-                    <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase">Diurutkan berdasar poin tertinggi</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <?php foreach ($kelas_list as $kelas): 
+                    $jumlah_siswa = fetchOne("
+                        SELECT COUNT(*) as total 
+                        FROM tb_anggota_kelas 
+                        WHERE id_kelas = :id_kelas AND id_tahun = :id_tahun
+                    ", ['id_kelas' => $kelas['id_kelas'], 'id_tahun' => $id_tahun])['total'] ?? 0;
+                ?>
+                <div class="bg-white border border-[#E2E8F0] hover:border-[#000080] rounded-xl shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1 relative overflow-hidden flex flex-col justify-between group">
+                    <div class="w-1.5 h-full bg-slate-200 group-hover:bg-[#000080] absolute left-0 top-0 transition-colors"></div>
+                    
+                    <div class="p-5 flex-1 cursor-pointer" onclick="window.location.href='../../sitapsi/views/admin/monitoring_siswa_list.php?kelas=<?= $kelas['id_kelas'] ?>&tahun=<?= $id_tahun ?>&arsip=1'">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 bg-slate-50 group-hover:bg-blue-50 text-[#000080] rounded-full flex items-center justify-center transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Tingkat</p>
+                                <p class="text-xl font-extrabold text-slate-800"><?= $kelas['tingkat'] ?></p>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-slate-800 mb-1"><?= $kelas['nama_kelas'] ?></h3>
+                        <p class="text-xs font-bold text-slate-500"><?= $jumlah_siswa ?> Siswa</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 border-t border-[#E2E8F0] divide-x divide-[#E2E8F0]">
+                        <a href="../../sitapsi/views/admin/monitoring_siswa_list.php?kelas=<?= $kelas['id_kelas'] ?>&tahun=<?= $id_tahun ?>&arsip=1" class="block text-center py-2.5 text-[10px] font-bold text-[#000080] hover:bg-blue-50 transition-colors uppercase tracking-wider">
+                            Daftar Siswa
+                        </a>
+                        <a href="../../sitapsi/views/admin/rekapitulasi_kelas.php?kelas=<?= $kelas['id_kelas'] ?>&tahun=<?= $id_tahun ?>&arsip=1" class="block text-center py-2.5 text-[10px] font-bold text-amber-600 hover:bg-amber-50 transition-colors uppercase tracking-wider">
+                            Rekap Kelas
+                        </a>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 text-xs text-slate-500 uppercase border-b border-[#E2E8F0]">
-                            <tr>
-                                <th class="p-3 font-bold">Identitas Siswa</th>
-                                <th class="p-3 font-bold text-center">Total Kejadian</th>
-                                <th class="p-3 font-bold text-center">Total Poin</th>
-                                <th class="p-3 font-bold text-center">Status Akhir</th>
-                                <th class="p-3 font-bold text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#E2E8F0]">
-                            <?php foreach($list_siswa_bermasalah as $siswa): ?>
-                            <tr class="hover:bg-slate-50">
-                                <td class="p-3">
-                                    <p class="font-bold text-slate-800 text-sm"><?= htmlspecialchars($siswa['nama_siswa']) ?></p>
-                                    <p class="text-[10px] text-slate-500 font-medium"><?= $siswa['nama_kelas'] ?> • <?= $siswa['no_induk'] ?></p>
-                                </td>
-                                <td class="p-3 text-center">
-                                    <span class="font-bold text-slate-700"><?= $siswa['jml_kejadian'] ?></span>x Kasus
-                                </td>
-                                <td class="p-3 text-center">
-                                    <span class="px-2 py-1 bg-red-50 text-red-600 font-extrabold text-[11px] rounded shadow-sm"><?= $siswa['total_poin'] ?> Pts</span>
-                                </td>
-                                <td class="p-3 text-center">
-                                    <?php 
-                                        $sp_class = $siswa['status_sp_terakhir'] === 'Aman' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200';
-                                    ?>
-                                    <span class="px-2 py-1 <?= $sp_class ?> border font-bold text-[10px] rounded-md"><?= $siswa['status_sp_terakhir'] ?></span>
-                                </td>
-                                <td class="p-3 text-center">
-                                    <button onclick="openDetailModal('<?= $siswa['id_anggota'] ?>', '<?= htmlspecialchars(addslashes($siswa['nama_siswa'])) ?>')" class="inline-flex items-center text-[#000080] hover:text-white hover:bg-[#000080] border border-[#000080] font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        Lihat Riwayat
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                            <?php if(empty($list_siswa_bermasalah)) echo '<tr><td colspan="5" class="p-8 text-center text-sm font-bold text-slate-400">Tidak ada rekam jejak pelanggaran sesuai filter.</td></tr>'; ?>
-                        </tbody>
-                    </table>
-                </div>
+                <?php endforeach; ?>
             </div>
 
             <?php else: ?>

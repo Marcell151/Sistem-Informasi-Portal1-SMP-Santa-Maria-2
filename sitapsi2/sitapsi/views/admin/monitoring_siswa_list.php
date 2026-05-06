@@ -13,7 +13,14 @@ if (!$id_kelas) {
     exit;
 }
 
-$tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
+$is_arsip = isset($_GET['arsip']) && $_GET['arsip'] == 1;
+$filter_tahun = $_GET['tahun'] ?? null;
+
+if ($filter_tahun) {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE id_tahun = :id", ['id' => $filter_tahun]);
+} else {
+    $tahun_aktif = fetchOne("SELECT id_tahun, nama_tahun, semester_aktif FROM tb_tahun_ajaran WHERE status = 'Aktif' LIMIT 1");
+}
 $kelas_info = fetchOne("SELECT * FROM tb_kelas WHERE id_kelas = :id", ['id' => $id_kelas]);
 $semester_berjalan = $tahun_aktif['semester_aktif'];
 
@@ -48,15 +55,27 @@ $siswa_list = fetchAll("
 <body class="bg-[#F8FAFC]">
 
 <div class="flex h-screen overflow-hidden">
-    <?php include '../../includes/sidebar_admin.php'; ?>
+    <?php 
+        if ($is_arsip) {
+            $is_cross_module = true;
+            include '../../../core_admin/includes/sidebar_core.php'; 
+        } else {
+            include '../../includes/sidebar_admin.php'; 
+        }
+    ?>
     <div class="flex-1 overflow-auto lg:ml-64">
         
         <div class="bg-white border-b border-[#E2E8F0] px-6 pl-16 lg:pl-6 py-4 sticky top-0 z-30 flex items-center space-x-4">
-            <a href="monitoring_siswa.php" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+            <a href="<?= $is_arsip ? '../../../core_admin/views/arsip_tahun.php?tahun=' . $filter_tahun . '&tab=tatib' : 'monitoring_siswa.php' ?>" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             </a>
             <div>
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Kelas <?= htmlspecialchars($kelas_info['nama_kelas']) ?></h1>
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Kelas <?= htmlspecialchars($kelas_info['nama_kelas']) ?></h1>
+                    <?php if ($is_arsip): ?>
+                        <span class="px-2 py-0.5 bg-slate-100 border border-slate-300 text-slate-600 text-[10px] font-bold rounded uppercase tracking-widest">Mode Arsip</span>
+                    <?php endif; ?>
+                </div>
                 <p class="text-sm font-medium text-slate-500">Monitoring profil dan pelanggaran individu</p>
             </div>
         </div>
@@ -83,12 +102,12 @@ $siswa_list = fetchAll("
                 </div>
                 <?php else: ?>
                 <?php foreach ($siswa_list as $siswa): 
-                    // LOGIKA BARU LENCANA REWARD
-                    $is_kandidat_sertifikat = ($siswa['total_tahunan'] == 0); // 0 poin full 1 tahun
-                    $is_kandidat_semester = (!$is_kandidat_sertifikat && $siswa['total_semester'] == 0); // 0 poin di semester ini saja
+                    // LOGIKA BARU LENCANA REWARD (Sembunyikan jika Mode Arsip)
+                    $is_kandidat_sertifikat = (!$is_arsip && $siswa['total_tahunan'] == 0); // 0 poin full 1 tahun
+                    $is_kandidat_semester = (!$is_arsip && !$is_kandidat_sertifikat && $siswa['total_semester'] == 0); // 0 poin di semester ini saja
                     $is_bersih = ($is_kandidat_sertifikat || $is_kandidat_semester);
                 ?>
-                <a href="detail_siswa.php?id=<?= $siswa['id_anggota'] ?>" 
+                <a href="detail_siswa.php?id=<?= $siswa['id_anggota'] ?><?= $is_arsip ? '&arsip=1' : '' ?>" 
                    class="block bg-white rounded-xl shadow-sm border <?= $is_bersih ? 'border-amber-400' : 'border-[#E2E8F0]' ?> hover:shadow-lg transition-all transform hover:-translate-y-1 overflow-hidden relative group">
                     
                     <?php if ($siswa['status_aktif'] !== 'Aktif'): ?>

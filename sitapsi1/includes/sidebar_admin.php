@@ -1,7 +1,7 @@
 <?php
 
 
-$current_page = basename($_SERVER['PHP_SELF'], '.php');
+$current_page = isset($_GET['arsip']) ? 'arsip_tahun' : basename($_SERVER['PHP_SELF'], '.php');
 
 // Menghitung jumlah report/revisi yang berstatus Pending
 $count_report = 0;

@@ -70,7 +70,7 @@ try {
                 FROM tb_anggota_kelas 
                 WHERE id_kelas IN ($placeholders)
                 AND id_tahun = ?
-            )
+            ) AND status_aktif = 'Aktif'
         ");
         $stmtLulus->execute($params);
     }
