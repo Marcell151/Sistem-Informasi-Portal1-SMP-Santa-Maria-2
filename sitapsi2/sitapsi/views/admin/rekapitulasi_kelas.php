@@ -37,38 +37,56 @@ if ($id_kelas) {
     $kelas_info = fetchOne("SELECT * FROM tb_kelas WHERE id_kelas = :id", ['id' => $id_kelas]);
     $semester_berjalan = $filter_semester;
     
-    // LOGIKA BARU: Tambah sub-query total_tahunan & total_semester
+    // LOGIKA DINAMIS: Menghitung poin per kategori berdasarkan semester yang dipilih
     $siswa_kelas = fetchAll("
         SELECT 
             s.no_induk,
             s.nama_siswa,
             a.id_anggota,
-            a.poin_kelakuan,
-            a.poin_kerajinan,
-            a.poin_kerapian,
-            a.total_poin_umum,
-            a.status_sp_terakhir,
-            a.status_sp_kelakuan,
-            a.status_sp_kerajinan,
-            a.status_sp_kerapian,
+            a.id_tahun,
+            -- Poin Total Tahunan
             (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
              FROM tb_pelanggaran_header h 
              JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
              WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun) as total_tahunan,
+            
+            -- Poin Per Kategori khusus Semester (Menggunakan parameter unik untuk menghindari HY093)
             (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
              FROM tb_pelanggaran_header h 
              JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
-             WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun AND h.semester = :semester) as total_semester
+             JOIN tb_jenis_pelanggaran j ON d.id_jenis = j.id_jenis
+             WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun 
+             AND h.semester = :sem1 AND j.id_kategori = 1) as poin_kelakuan_smt,
+             
+            (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
+             FROM tb_pelanggaran_header h 
+             JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
+             JOIN tb_jenis_pelanggaran j ON d.id_jenis = j.id_jenis
+             WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun 
+             AND h.semester = :sem2 AND j.id_kategori = 2) as poin_kerajinan_smt,
+             
+            (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
+             FROM tb_pelanggaran_header h 
+             JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
+             JOIN tb_jenis_pelanggaran j ON d.id_jenis = j.id_jenis
+             WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun 
+             AND h.semester = :sem3 AND j.id_kategori = 3) as poin_kerapian_smt,
+             
+            a.status_sp_terakhir,
+            a.status_sp_kelakuan,
+            a.status_sp_kerajinan,
+            a.status_sp_kerapian
         FROM tb_siswa s
         JOIN tb_anggota_kelas a ON s.no_induk = a.no_induk
-        WHERE s.status_aktif = 'Aktif' 
-        AND a.id_tahun = :id_tahun
+        WHERE a.id_tahun = :id_tahun
         AND a.id_kelas = :id_kelas
         ORDER BY s.nama_siswa
     ", [
         'id_tahun' => $tahun_aktif['id_tahun'],
         'id_kelas' => $id_kelas,
-        'semester' => $semester_berjalan
+        'sem1' => $semester_berjalan,
+        'sem2' => $semester_berjalan,
+        'sem3' => $semester_berjalan
     ]);
 }
 
@@ -216,9 +234,11 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                             </tr>
                             <?php else: ?>
                             <?php foreach ($siswa_kelas as $idx => $siswa): 
+                                $total_smt = $siswa['poin_kelakuan_smt'] + $siswa['poin_kerajinan_smt'] + $siswa['poin_kerapian_smt'];
+                                
                                 // LOGIKA BARU LENCANA REWARD (Disembunyikan saat Mode Arsip)
                                 $is_kandidat_sertifikat = (!$is_arsip && $siswa['total_tahunan'] == 0); // 0 poin full 1 tahun
-                                $is_kandidat_semester = (!$is_arsip && !$is_kandidat_sertifikat && $siswa['total_semester'] == 0); // 0 poin di semester ini saja
+                                $is_kandidat_semester = (!$is_arsip && !$is_kandidat_sertifikat && $total_smt == 0); // 0 poin di semester ini saja
                                 $is_bersih = ($is_kandidat_sertifikat || $is_kandidat_semester);
                             ?>
                             <tr class="hover:bg-slate-50 transition-colors group <?= $is_bersih ? 'bg-amber-50/30' : '' ?>">
@@ -236,17 +256,17 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                 </td>
                                 
                                 <td class="p-3 text-center bg-red-50/30">
-                                    <span class="px-2 py-1 <?= $siswa['poin_kelakuan'] > 0 ? 'bg-red-100 text-red-700 border border-red-200 shadow-sm' : 'text-slate-400 border border-transparent' ?> rounded-md text-[11px] font-extrabold"><?= $siswa['poin_kelakuan'] ?></span>
+                                    <span class="px-2 py-1 <?= $siswa['poin_kelakuan_smt'] > 0 ? 'bg-red-100 text-red-700 border border-red-200 shadow-sm' : 'text-slate-400 border border-transparent' ?> rounded-md text-[11px] font-extrabold"><?= $siswa['poin_kelakuan_smt'] ?></span>
                                 </td>
                                 <td class="p-3 text-center bg-blue-50/30">
-                                    <span class="px-2 py-1 <?= $siswa['poin_kerajinan'] > 0 ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm' : 'text-slate-400 border border-transparent' ?> rounded-md text-[11px] font-extrabold"><?= $siswa['poin_kerajinan'] ?></span>
+                                    <span class="px-2 py-1 <?= $siswa['poin_kerajinan_smt'] > 0 ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm' : 'text-slate-400 border border-transparent' ?> rounded-md text-[11px] font-extrabold"><?= $siswa['poin_kerajinan_smt'] ?></span>
                                 </td>
                                 <td class="p-3 text-center bg-yellow-50/30">
-                                    <span class="px-2 py-1 <?= $siswa['poin_kerapian'] > 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm' : 'text-slate-400 border border-transparent' ?> rounded-md text-[11px] font-extrabold"><?= $siswa['poin_kerapian'] ?></span>
+                                    <span class="px-2 py-1 <?= $siswa['poin_kerapian_smt'] > 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm' : 'text-slate-400 border border-transparent' ?> rounded-md text-[11px] font-extrabold"><?= $siswa['poin_kerapian_smt'] ?></span>
                                 </td>
                                 
                                 <td class="p-3 text-center bg-slate-50 border-l border-[#E2E8F0]">
-                                    <span class="px-2.5 py-1 bg-slate-800 text-white rounded-md text-[11px] font-extrabold shadow-sm"><?= $siswa['total_poin_umum'] ?></span>
+                                    <span class="px-2.5 py-1 bg-slate-800 text-white rounded-md text-[11px] font-extrabold shadow-sm"><?= $total_smt ?></span>
                                 </td>
                                 
                                 <td class="p-3 text-center border-l border-[#E2E8F0]">

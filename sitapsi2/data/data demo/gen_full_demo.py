@@ -478,8 +478,10 @@ CREATE TABLE tb_pelanggaran_header (
     waktu TIME NOT NULL,
     semester ENUM('Ganjil', 'Genap') NOT NULL, 
     tipe_form ENUM('Piket', 'Kelas') NOT NULL,
-    bukti_foto VARCHAR(255),
+    bukti_foto VARCHAR(255) NULL,
     lampiran_link TEXT NULL, 
+    lampiran VARCHAR(255) NULL, 
+    catatan TEXT NULL,
     status_revisi ENUM('None', 'Pending', 'Disetujui', 'Ditolak') DEFAULT 'None',
     alasan_revisi TEXT NULL
 );
@@ -611,8 +613,35 @@ sql_content += ",\n".join(ak_rows) + ";\n"
 
 # 4. Violations
 sql_content += "\n-- FASE: tb_pelanggaran_header\n"
-sql_content += "INSERT INTO tb_pelanggaran_header (id_transaksi, id_anggota, id_guru, id_tahun, tanggal, waktu, semester, tipe_form, status_revisi, alasan_revisi) VALUES\n"
-h_rows = [f"({h['id']}, {h['id_a']}, {h['id_g']}, {h['id_t']}, '{h['date']}', '{h['time']}', '{h['semester']}', '{h['tipe']}', '{h['rev']}', {sql_esc(h['rev_r'])})" for h in v_header]
+sql_content += "INSERT INTO tb_pelanggaran_header (id_transaksi, id_anggota, id_guru, id_tahun, tanggal, waktu, semester, tipe_form, bukti_foto, lampiran_link, status_revisi, alasan_revisi) VALUES\n"
+h_rows = []
+
+# Logic for realistic evidence distribution
+# 1. We want about 8 empty ones (sudden cases)
+# 2. Others should vary between photos, docs, and links
+empty_indices = random.sample(range(len(v_header)), min(8, len(v_header)))
+photo_files = ['bukti_seragam.png', 'bukti_terlambat.png']
+doc_files = ['surat_pernyataan.png', 'laporan_kejadian.pdf.png']
+
+for idx, h in enumerate(v_header):
+    bukti_foto = "NULL"
+    lampiran_link = "NULL"
+    
+    if idx not in empty_indices:
+        # Determine type based on modulo
+        evidence_type = idx % 3
+        
+        if evidence_type == 0: # Photo
+            file = random.choice(photo_files)
+            bukti_foto = f'\'["{file}"]\''
+        elif evidence_type == 1: # Document
+            file = random.choice(doc_files)
+            bukti_foto = f'\'["{file}"]\''
+        else: # Link
+            lampiran_link = f"'https://drive.google.com/file/d/demo_evid_{h['id']}/view'"
+            
+    h_rows.append(f"({h['id']}, {h['id_a']}, {h['id_g']}, {h['id_t']}, '{h['date']}', '{h['time']}', '{h['semester']}', '{h['tipe']}', {bukti_foto}, {lampiran_link}, '{h['rev']}', {sql_esc(h['rev_r'])})")
+
 sql_content += ",\n".join(h_rows) + ";\n"
 
 sql_content += "\n-- FASE: tb_pelanggaran_detail\n"

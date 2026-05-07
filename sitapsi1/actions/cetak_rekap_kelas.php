@@ -34,20 +34,37 @@ $kelas_info = fetchOne("
 $siswa_kelas = fetchAll("
     SELECT 
         s.no_induk, s.jenis_kelamin, s.nama_siswa,
-        a.poin_kelakuan, a.poin_kerajinan, a.poin_kerapian,
+        -- Poin Per Kategori khusus Semester (Menggunakan parameter unik untuk menghindari HY093)
         (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
          FROM tb_pelanggaran_header h 
          JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
-         WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun AND h.semester = :semester) as total_semester
+         JOIN tb_jenis_pelanggaran j ON d.id_jenis = j.id_jenis
+         WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun 
+         AND h.semester = :sem1 AND j.id_kategori = 1) as poin_kelakuan_smt,
+         
+        (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
+         FROM tb_pelanggaran_header h 
+         JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
+         JOIN tb_jenis_pelanggaran j ON d.id_jenis = j.id_jenis
+         WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun 
+         AND h.semester = :sem2 AND j.id_kategori = 2) as poin_kerajinan_smt,
+         
+        (SELECT COALESCE(SUM(d.poin_saat_itu), 0) 
+         FROM tb_pelanggaran_header h 
+         JOIN tb_pelanggaran_detail d ON h.id_transaksi = d.id_transaksi 
+         JOIN tb_jenis_pelanggaran j ON d.id_jenis = j.id_jenis
+         WHERE h.id_anggota = a.id_anggota AND h.id_tahun = a.id_tahun 
+         AND h.semester = :sem3 AND j.id_kategori = 3) as poin_kerapian_smt
     FROM tb_siswa s
     JOIN tb_anggota_kelas a ON s.no_induk = a.no_induk
-    WHERE s.status_aktif = 'Aktif' 
-    AND a.id_tahun = :id_tahun AND a.id_kelas = :id_kelas
+    WHERE a.id_tahun = :id_tahun AND a.id_kelas = :id_kelas
     ORDER BY s.nama_siswa
 ", [
     'id_tahun' => $tahun_aktif['id_tahun'], 
     'id_kelas' => $id_kelas,
-    'semester' => $semester_aktif
+    'sem1' => $semester_aktif,
+    'sem2' => $semester_aktif,
+    'sem3' => $semester_aktif
 ]);
 
 $btn_primary = "px-5 py-2.5 bg-[#000080] text-white text-sm font-semibold rounded-lg shadow-md hover:bg-blue-900 transition-all flex items-center justify-center cursor-pointer";
@@ -126,6 +143,7 @@ $btn_outline = "px-5 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
                     <th class="bg-kelakuan" style="width: 12%;">Kelakuan</th>
                     <th class="bg-kerajinan" style="width: 12%;">Kerajinan</th>
                     <th class="bg-kerapian" style="width: 12%;">Kerapian</th>
+                    <th class="bg-header-umum" style="width: 10%;">Total</th>
                 </tr>
             </thead>
             <tbody>
@@ -133,9 +151,11 @@ $btn_outline = "px-5 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
                 <tr><td colspan="6" class="text-center py-4">Belum ada data siswa di kelas ini.</td></tr>
                 <?php else: ?>
                     <?php foreach ($siswa_kelas as $siswa): 
-                        $p_kelakuan = ($siswa['poin_kelakuan'] == 0) ? '-' : $siswa['poin_kelakuan'];
-                        $p_kerajinan = ($siswa['poin_kerajinan'] == 0) ? '-' : $siswa['poin_kerajinan'];
-                        $p_kerapian = ($siswa['poin_kerapian'] == 0) ? '-' : $siswa['poin_kerapian'];
+                        $total_smt = $siswa['poin_kelakuan_smt'] + $siswa['poin_kerajinan_smt'] + $siswa['poin_kerapian_smt'];
+                        $p_kelakuan = ($siswa['poin_kelakuan_smt'] == 0) ? '-' : $siswa['poin_kelakuan_smt'];
+                        $p_kerajinan = ($siswa['poin_kerajinan_smt'] == 0) ? '-' : $siswa['poin_kerajinan_smt'];
+                        $p_kerapian = ($siswa['poin_kerapian_smt'] == 0) ? '-' : $siswa['poin_kerapian_smt'];
+                        $p_total = ($total_smt == 0) ? '-' : $total_smt;
                     ?>
                     <tr>
                         <td class="text-center"><?= $siswa['no_induk'] ?></td>
@@ -144,6 +164,7 @@ $btn_outline = "px-5 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
                         <td class="text-center"><?= $p_kelakuan ?></td>
                         <td class="text-center"><?= $p_kerajinan ?></td>
                         <td class="text-center"><?= $p_kerapian ?></td>
+                        <td class="text-center font-bold"><?= $p_total ?></td>
                     </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

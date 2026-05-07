@@ -11,6 +11,7 @@ if (!isset($_SESSION['role'])) {
 
 $id_anggota = $_GET['id'] ?? null;
 $id_tahun = $_GET['tahun'] ?? null;
+$filter_semester = $_GET['semester'] ?? null;
 
 if (!$id_anggota) {
     die("ID Siswa tidak dipilih.");
@@ -59,10 +60,11 @@ if ($_SESSION['role'] === 'Ortu') {
     }
 }
 
-// 3. Ambil seluruh pelanggaran siswa ini pada tahun aktif
+// 3. Ambil seluruh pelanggaran siswa ini pada tahun aktif (TIDAK LAGI DIFILTER PER SEMESTER)
 $pelanggaran_raw = fetchAll("
     SELECT 
         h.tanggal,
+        h.semester,
         jp.nama_pelanggaran,
         jp.id_kategori,
         d.poin_saat_itu
@@ -143,7 +145,7 @@ $btn_outline = "px-6 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
             print-color-adjust: exact; 
         }
         
-        
+        .divider-row { font-weight: bold; text-align: center; font-size: 10px; height: 12px; background-color: #ffffff !important; }
         .col-tgl { width: 11%; }
         .col-aspek { width: 15%; }
         .col-denda { width: 6%; text-align: center; white-space: nowrap; } 
@@ -153,6 +155,7 @@ $btn_outline = "px-6 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
             .print-container { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 10mm !important; max-width: 100% !important; width: 100% !important; }
+            .divider-row { background-color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
         @page { size: A4 landscape; margin: 10mm; }
     </style>
@@ -188,6 +191,10 @@ $btn_outline = "px-6 py-2.5 bg-white border border-[#E2E8F0] text-slate-700 text
             <tr>
                 <td>Kelas / Nomor</td>
                 <td>: <?= htmlspecialchars($siswa['nama_kelas']) ?> / <?= $siswa['no_induk'] ?></td>
+            </tr>
+            <tr>
+                <td>Tahun Pelajaran</td>
+                <td>: <?= htmlspecialchars($tahun_aktif['nama_tahun']) ?></td>
             </tr>
         </table>
 

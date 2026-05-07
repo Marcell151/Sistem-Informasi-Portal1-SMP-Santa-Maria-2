@@ -419,7 +419,8 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                     <th class="p-4 font-bold w-1/6">Waktu</th>
                                     <th class="p-4 font-bold w-1/4">Jenis Pelanggaran</th>
                                     <th class="p-4 font-bold w-1/4">Sanksi & Tindakan</th>
-                                    <th class="p-4 font-bold text-center w-1/12">Poin</th>
+                                    <th class="p-4 font-bold text-center">Poin</th>
+                                    <th class="p-4 font-bold text-center">Lampiran</th>
                                     <th class="p-4 font-bold w-1/6">Pelapor</th>
                                     <th class="p-4 font-bold text-center w-1/12">Aksi</th>
                                 </tr>
@@ -462,6 +463,17 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
                                             +<?= $p['poin_saat_itu'] ?>
                                         </span>
                                     </td>
+
+                                    <td class="p-4 text-center whitespace-nowrap align-top">
+                                        <?php if ((!empty($p['bukti_foto']) && $p['bukti_foto'] !== 'null') || !empty($p['lampiran_link'])): ?>
+                                            <button onclick="lihatBukti('<?= htmlspecialchars($p['bukti_foto'] ?? 'null', ENT_QUOTES) ?>', '<?= htmlspecialchars($p['lampiran_link'] ?? '', ENT_QUOTES) ?>')" class="p-1.5 bg-white border border-[#E2E8F0] text-blue-600 rounded-md hover:bg-blue-50 transition-colors shadow-sm" title="Lihat Lampiran Bukti">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="text-[10px] text-slate-400 italic">Kosong</span>
+                                        <?php endif; ?>
+                                    </td>
+
                                     <td class="p-4 text-xs font-medium text-slate-700 whitespace-nowrap align-top"><?= htmlspecialchars($p['nama_guru']) ?></td>
                                     <td class="p-4 text-center whitespace-nowrap align-top">
                                         <div class="flex items-center justify-center space-x-2">
@@ -567,6 +579,22 @@ $card_class = "bg-white border border-[#E2E8F0] rounded-xl shadow-sm";
     </div>
 </div>
 
+<div id="modal-bukti" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="document.getElementById('modal-bukti').classList.add('hidden')"></div>
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] relative z-10 overflow-hidden">
+        <div class="p-5 border-b border-[#E2E8F0] bg-slate-50/50 flex justify-between items-center">
+            <h3 class="font-extrabold text-slate-800 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-[#000080]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                Lampiran Bukti Pelanggaran
+            </h3>
+            <button onclick="document.getElementById('modal-bukti').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto bg-slate-100" id="bukti-container"></div>
+    </div>
+</div>
+
 <!-- JAVASCRIPT -->
 <script>
 function switchTab(tab) {
@@ -575,15 +603,82 @@ function switchTab(tab) {
         b.classList.remove('bg-red-600', 'bg-blue-600', 'bg-yellow-500', 'text-white', 'border-red-700', 'border-blue-700', 'border-yellow-600');
         b.classList.add('bg-white', 'text-slate-500', 'border-transparent');
     });
-    document.getElementById('content-' + tab).classList.remove('hidden');
     
+    document.getElementById('content-' + tab).classList.remove('hidden');
     const activeTab = document.getElementById('tab-' + tab);
+    
     activeTab.classList.remove('bg-white', 'text-slate-500', 'border-transparent');
     activeTab.classList.add('text-white');
     
     if (tab === 'kelakuan') activeTab.classList.add('bg-red-600', 'border-red-700');
     else if (tab === 'kerajinan') activeTab.classList.add('bg-blue-600', 'border-blue-700');
     else activeTab.classList.add('bg-yellow-500', 'border-yellow-600');
+}
+
+function lihatBukti(jsonString, lampiranLink) {
+    const container = document.getElementById('bukti-container');
+    container.innerHTML = '';
+    
+    if (lampiranLink && lampiranLink !== 'null' && lampiranLink !== '') {
+        container.innerHTML += `
+            <a href="${lampiranLink}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-4 mb-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors shadow-sm group">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-sm text-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-extrabold text-blue-900">Tautan Eksternal (Google Drive / Cloud)</p>
+                        <p class="text-xs text-blue-700 truncate max-w-[200px] sm:max-w-xs">${lampiranLink}</p>
+                    </div>
+                </div>
+                <svg class="w-5 h-5 text-blue-400 group-hover:text-blue-600 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+        `;
+    }
+    
+    if (jsonString && jsonString !== 'null' && jsonString !== '') {
+        try {
+            const fotos = JSON.parse(jsonString);
+            let fileGrid = '<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">';
+            
+            fotos.forEach(foto => {
+                const imgPath = '../../assets/uploads/bukti/' + foto;
+                const ext = foto.split('.').pop().toLowerCase();
+                const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(ext);
+                
+                if(isImage) {
+                    fileGrid += `
+                        <a href="${imgPath}" target="_blank" class="block group relative rounded-xl overflow-hidden border border-[#E2E8F0] shadow-sm bg-white">
+                            <img src="${imgPath}" class="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-110" onerror="this.onerror=null; this.src='../../assets/img/no-image.png';">
+                        </a>`;
+                } else if(ext === 'pdf') {
+                    fileGrid += `
+                        <a href="${imgPath}" target="_blank" class="flex flex-col items-center justify-center p-4 h-32 bg-slate-50 border border-[#E2E8F0] hover:bg-slate-100 hover:border-slate-300 rounded-xl transition-colors shadow-sm group">
+                            <svg class="w-10 h-10 text-red-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            <p class="text-[10px] font-bold text-slate-600 text-center truncate w-full px-2" title="${foto}">${foto}</p>
+                        </a>`;
+                } else {
+                    fileGrid += `
+                        <a href="${imgPath}" target="_blank" class="flex flex-col items-center justify-center p-4 h-32 bg-slate-50 border border-[#E2E8F0] hover:bg-slate-100 hover:border-slate-300 rounded-xl transition-colors shadow-sm group">
+                            <svg class="w-10 h-10 text-blue-500 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            <p class="text-[10px] font-bold text-slate-600 text-center truncate w-full px-2" title="${foto}">${foto}</p>
+                        </a>`;
+                }
+            });
+            
+            fileGrid += '</div>';
+            container.innerHTML += fileGrid;
+            
+        } catch(e) {
+            console.error("Gagal parsing JSON foto", e);
+        }
+    }
+    
+    if(container.innerHTML === '') {
+        container.innerHTML = '<div class="text-center text-slate-400 py-6"><p class="font-bold text-sm">Tidak ada bukti terlampir.</p></div>';
+    }
+
+    document.getElementById('modal-bukti').classList.remove('hidden');
 }
 
 function viewDetail(id) {
